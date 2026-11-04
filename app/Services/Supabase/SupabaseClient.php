@@ -41,9 +41,11 @@ class SupabaseClient
                 $endpoint = "{$this->url}/storage/v1/object/{$bucket}/{$path}";
                 $token = !empty($this->serviceRoleKey) ? $this->serviceRoleKey : $this->anonKey;
 
-                $response = Http::withHeaders([
+                $response = Http::withoutVerifying()->withHeaders([
                     'Authorization' => "Bearer {$token}",
+                    'apiKey' => $this->anonKey,
                     'Content-Type' => $mimeType,
+                    'x-upsert' => 'true',
                 ])->withBody($contents, $mimeType)->post($endpoint);
 
                 if ($response->successful()) {
@@ -87,8 +89,9 @@ class SupabaseClient
                 $endpoint = "{$this->url}/storage/v1/object/{$bucket}/{$path}";
                 $token = !empty($this->serviceRoleKey) ? $this->serviceRoleKey : $this->anonKey;
 
-                $response = Http::withHeaders([
+                $response = Http::withoutVerifying()->withHeaders([
                     'Authorization' => "Bearer {$token}",
+                    'apiKey' => $this->anonKey,
                 ])->delete($endpoint);
 
                 return $response->successful();
@@ -110,7 +113,7 @@ class SupabaseClient
                 $endpoint = "{$this->url}/rest/v1/rpc/broadcast";
                 $token = !empty($this->serviceRoleKey) ? $this->serviceRoleKey : $this->anonKey;
 
-                Http::withHeaders([
+                Http::withoutVerifying()->withHeaders([
                     'Authorization' => "Bearer {$token}",
                     'apikey' => $this->anonKey,
                     'Content-Type' => 'application/json',
@@ -127,3 +130,4 @@ class SupabaseClient
         Log::info("Realtime Event [{$channel}:{$event}]", $payload);
     }
 }
+
