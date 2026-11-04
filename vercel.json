@@ -8,6 +8,14 @@
       "runtime": "vercel-php@0.7.4"
     }
   },
+  "env": {
+    "APP_CONFIG_CACHE": "/tmp/storage/framework/cache/config.php",
+    "APP_EVENTS_CACHE": "/tmp/storage/framework/cache/events.php",
+    "APP_PACKAGES_CACHE": "/tmp/storage/framework/cache/packages.php",
+    "APP_ROUTES_CACHE": "/tmp/storage/framework/cache/routes.php",
+    "APP_SERVICES_CACHE": "/tmp/storage/framework/cache/services.php",
+    "VIEW_COMPILED_PATH": "/tmp/storage/framework/views"
+  },
   "routes": [
     {
       "src": "/build/(.*)",
