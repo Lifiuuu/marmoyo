@@ -1,125 +1,147 @@
-# Marmoyo Smart-Dine: Sistem Self-Ordering Berbasis AI Kedai Mie Marmoyo
+# Marmoyo Smart-Dine: Sistem POS & Self-Ordering Cerdas Berbasis AI
 
-Sistem pemesanan mandiri (*self-ordering*) berbasis web responsif yang dirancang untuk mengeliminasi antrean kasir, mempercepat turnaround meja, dan mengotomasi pencatatan keuangan di **Kedai Mie Marmoyo** (berdasarkan studi *Design Thinking Kelompok 5*, D3/Sarjana Terapan Teknik Informatika, Universitas Airlangga).
+Sistem kasir (POS) dan pemesanan mandiri (*self-ordering*) terintegrasi yang dirancang untuk mengeliminasi antrean kasir, mempercepat perputaran meja (*turnaround*), dan mengotomasi pencatatan keuangan kedai secara real-time (dikembangkan berdasarkan studi *Design Thinking Kelompok 5*, Universitas Airlangga).
 
-Aplikasi dibangun menggunakan framework **Laravel 12 (PHP 8.2+)** dengan arsitektur bersih berstandar industri (*enterprise clean architecture*), siap integrasi penuh ke **Supabase** (PostgreSQL, Supabase Storage, & Supabase Realtime).
+Aplikasi dibangun menggunakan framework **Laravel 12 (PHP 8.2+)** dengan arsitektur bersih berstandar industri (*enterprise clean architecture*), basis data cloud **Supabase PostgreSQL**, serta siap di-deploy secara *serverless* ke **Vercel** dengan pipeline CI/CD **GitHub Actions**.
 
 ---
 
-## 👥 Tiga Aktor / Peran Pengguna (Sesuai SRS)
+## 👥 Tiga Aktor & Modul Utama Sistem
 
-### 1. Pelanggan (Mobile Web via QR Meja)
-- **Akses Cepat Tanpa Unduh Aplikasi**: Memindai stiker QR Code meja (URL bertanda tangan kriptografis) untuk langsung membuka katalog Meja 01 s/d Meja 12.
-- **Katalog Menu & Info Tingkat Pedas**: Penandaan cabai eksplisit (*Level 1 Santai*, *Level 2 Sedang*, *Level 3 Pedas Nampol*, *Level 4-5 Super Pedas Rawit Setan*), jenis mie (Keriting/Lebar), ekstra topping kenyang, dan catatan koki (*"Jangan terlalu berminyak"*).
+### 1. Pelanggan (Mobile Web Self-Ordering via QR Meja)
+- **Akses Instan Tanpa Unduh Aplikasi**: Memindai stiker QR Code meja (URL bertanda tangan kriptografis) untuk langsung membuka katalog Meja 01 s/d Meja 12.
+- **Katalog Menu & Info Tingkat Pedas**: Penandaan cabai eksplisit (*Level 1 Santai*, *Level 2 Sedang*, *Level 3 Pedas Nampol*, *Level 4-5 Super Pedas Rawit Setan*), jenis mie (Keriting/Lebar), ekstra topping, dan catatan khusus pesanan.
 - **Smart-Dine AI Engine**: Rekomendasi otomatis minuman dingin pereda pedas (*Es Teh Manis Jumbo*, *Es Jeruk Peras*) dan dimsum penetral (*Udang Keju*, *Dimsum Pangsit*) jika pelanggan memilih menu pedas tinggi.
+- **Badge Bestseller Otomatis**: Label *BESTSELLER* dihitung 100% otomatis berdasarkan data volume penjualan riil tertinggi per kategori menu.
 - **Dua Metode Pembayaran**:
-  - **QRIS Instan**: QR dinamis dengan batas waktu 5 menit dan verifikasi otomatis langsung masuk ke dapur.
+  - **QRIS Instan**: QR dinamis EMVCo dengan batas waktu 5 menit dan verifikasi otomatis langsung masuk ke antrean kedai.
   - **Bayar Tunai di Kasir**: Menerbitkan kode antrean transaksi `TUNAI-xxxx` ber-barcode. Pesanan ditahan hingga divalidasi kasir.
-- **Live Tracking & Struk Digital**: Memantau pengerjaan dapur (*Live Cook* estimasi 10-15 menit), unduh struk digital, dan tombol darurat panggil pelayan meja.
+- **Live Tracking & Struk Digital**: Memantau pengerjaan dapur (estimasi 10–15 menit), unduh struk digital, dan tombol darurat panggil pelayan.
 
 ### 2. Kasir / Staf Kedai (POS Terminal)
-- **Live Order Stream**: Memantau antrean pesanan aktif kedai (*Pesanan Masuk*, *Sedang Dimasak*, *Siap Saji*) lengkap dengan timer durasi tunggu.
-- **Validasi Tunai Cepat (<15 Detik)**: Scan barcode / ketik kode `TUNAI-xxxx`, pilihan tombol nominal cepat (Uang Pas, Rp20rb, Rp50rb, Rp100rb), kalkulator kembalian otomatis, dan konfirmasi 1-klik yang langsung mengirim tiket ke dapur.
-- **Format Cetak Thermal ESC/POS (58mm/80mm)**: Pratinjau dan cetak tiket dapur dengan nomor meja tegas dan catatan koki tebal.
+- **Live Order Stream**: Memantau antrean pesanan aktif kedai (*Pesanan Masuk*, *Sedang Dimasak*, *Siap Saji*) lengkap dengan penghitung durasi tunggu.
+- **Validasi Tunai Cepat (<15 Detik)**: Scan barcode menggunakan webcam / ketik kode `TUNAI-xxxx`, pilihan tombol nominal cepat (Uang Pas, Rp20rb, Rp50rb, Rp100rb), kalkulator kembalian otomatis, dan konfirmasi 1-klik.
+- **Input Pesanan Take Away (Bungkus)**: Modul khusus kasir (`/cashier/take-away`) untuk melayani pelanggan bungkus/bawa pulang dengan kalkulator biaya kemasan (*packaging fee*) otomatis dan dukungan pembayaran tunai/QRIS.
+- **Format Cetak Struk Kasir Thermal ESC/POS (58mm/80mm)**: Satu tombol cetak struk resmi lengkap dengan identitas kedai, rincian pesanan, PB1, biaya bungkus, dan pesan kaki penutup.
 - **Rekonsiliasi Kas / Tutup Shift**: Pencocokan uang fisik kasir dengan catatan penerimaan sistem (target selisih: **Rp0**).
 
-### 3. Admin / Pemilik Kedai (Owner Dashboard)
-- **Executive Analytics**: Metrik omzet harian-bulanan, total transaksi, rating kepuasan (9.4/10), breakdown digital vs tunai (88% QRIS vs 12% Tunai).
+### 3. Admin / Pemilik Kedai (Owner Executive Dashboard)
+- **Executive Analytics**: Metrik omzet harian-bulanan, total transaksi, rating kepuasan (9.4/10), dan breakdown digital vs tunai (88% QRIS vs 12% Tunai).
 - **Grafik Tren Penjualan Per Jam**: Analisis jam sibuk sore-malam (*peak rush hours 17.00 - 21.00 WIB*).
-- **Buku Mutasi Kas & Audit Selisih**: Laporan rekonsiliasi kasir harian untuk audit uang fisik vs sistem.
+- **Buku Mutasi Kas & Audit Selisih**: Laporan rekapitulasi rekonsiliasi kasir harian untuk audit uang fisik vs pencatatan sistem.
 - **Katalog Menu Dinamis & Sakelar Stok**: CRUD menu, penentuan harga, level pedas, dan *1-click stock toggle* untuk mengubah menu menjadi "Habis" secara instan.
-- **Generator QR Code Meja**: Tambah nomor meja kedai dan cetak lembar stiker QR Code meja siap pakai.
-- **Pengaturan Hardware**: Konfigurasi ukuran printer thermal dapur (58mm atau 80mm) dan status koneksi Supabase.
+- **Generator QR Code Meja**: Tambah nomor meja kedai dan cetak lembar stiker QR Code meja siap tempel A4.
+- **Kelola Staf / Pengguna**: Manajemen pengguna internal untuk menambah staf kasir baru, memperbarui peran, dan reset kata sandi (dilengkapi proteksi anti-hapus akun sendiri & anti-hapus admin terakhir).
+- **Pengaturan Kedai & Format Struk**: Kelola identitas usaha (Nama Kedai, Tagline, Alamat, Kontak WA, Pesan Kaki Struk), tarif biaya bungkus (Take Away), persentase pajak PB1 (10%), diskon promo, serta **Simulator Struk Thermal 58mm Live Preview**.
+
+---
+
+## 🔑 Akun Bawaan (Default Credentials)
+
+| Peran | Alamat Email | Kata Sandi | Halaman Utama |
+| :--- | :--- | :--- | :--- |
+| **Admin (Owner)** | `owner@marmoyo.com` | `password123` | `/admin/dashboard` |
+| **Kasir (Staf)** | `kasir@marmoyo.com` | `password123` | `/cashier/live-orders` |
+| **Pelanggan Meja 08** | *(Tanpa Login / Scan QR Meja)* | - | `/menu` |
 
 ---
 
 ## 🚀 Panduan Menjalankan Sistem Secara Lokal
 
 ### Kebutuhan Sistem
-- PHP >= 8.2 (dengan ekstensi pdo_sqlite / pdo_pgsql)
+- PHP >= 8.2 (dengan ekstensi `pdo_pgsql` atau `pdo_sqlite`)
 - Composer
-- Node.js & npm
+- Node.js >= 18 & npm
 
-### Langkah Menjalankan
-1. **Clone / Buka Direktori**:
+### Langkah Instalasi
+1. **Clone Repository & Masuk Direktori**:
    ```bash
-   cd d:/laragon/www/marmoyo
+   git clone https://github.com/Lifiuuu/marmoyo.git
+   cd marmoyo
    ```
 
-2. **Jalankan Migrasi & Seeder Menu Otentik**:
+2. **Salin File Environment**:
    ```bash
-   php artisan migrate:fresh --seed
+   cp .env.example .env
+   php artisan key:generate
    ```
 
-3. **Build Aset Frontend**:
+3. **Install Dependensi PHP & Frontend**:
    ```bash
+   composer install
+   npm install
    npm run build
    ```
 
-4. **Jalankan Server Laravel**:
+4. **Jalankan Migrasi Database & Seeder**:
+   ```bash
+   php artisan migrate --seed
+   ```
+
+5. **Jalankan Server Lokal**:
    ```bash
    php artisan serve
    ```
-   Aplikasi akan berjalan di: `http://localhost:8000`
+   Aplikasi akan berjalan di: `http://127.0.0.1:8000`
 
 ---
 
-## 🔑 Akun Bawaan (Default Credentials)
+## ☁️ Deployment Serverless ke Vercel & CI/CD Pipeline
 
-| Peran | Email | Kata Sandi | Halaman Utama |
-| :--- | :--- | :--- | :--- |
-| **Admin (Owner Wasis)** | `owner@marmoyo.com` | `password123` | `http://localhost:8000/admin/dashboard` |
-| **Kasir (Staf Najwa)** | `kasir@marmoyo.com` | `password123` | `http://localhost:8000/cashier/live-orders` |
-| **Pelanggan (Meja 08)** | *(Tanpa Login / Scan Meja)* | - | `http://localhost:8000/menu` |
+Proyek telah dioptimalkan khusus untuk lingkungan **Vercel Serverless**:
+- **Entrypoint Serverless (`api/index.php`)**: Mengalihkan seluruh direktori penyimpanan dan kompilasi Blade view ke `/tmp/storage` yang *writable*.
+- **Relokasi Cache Bootstrap**: Konfigurasi `APP_PACKAGES_CACHE`, `APP_SERVICES_CACHE`, `APP_CONFIG_CACHE`, dan `APP_ROUTES_CACHE` diarahkan ke `/tmp` guna mencegah error filesystem read-only.
+- **Reverse Proxy Trust**: `$middleware->trustProxies(at: '*')` aktif di `bootstrap/app.php` sehingga protokol HTTPS dan domain Vercel terdeteksi otomatis pada pembuatan QR Code meja.
+- **GitHub Actions (`.github/workflows/deploy.yml`)**: Menjalankan pengujian otomatis setiap kali ada `git push` ke branch `main`, dan otomatis melakukan deployment produksi ke Vercel jika semua test lulus.
 
-> **Catatan Praktis**: Halaman login (`/login`) juga menyediakan tombol jalan pintas **"Akses Instan Demo (1-Klik)"** untuk masuk sebagai Owner atau Kasir tanpa perlu mengetik ulang kata sandi.
+### Environment Variables di Vercel Dashboard
+Tambahkan variabel berikut pada menu **Project Settings > Environment Variables** di Vercel:
 
----
-
-## ⚡ Panduan Aktivasi Integrasi Supabase Cloud
-
-Sistem dirancang modular dengan abstraksi `App\Services\Supabase\SupabaseClient` dan `SupabaseStorageService`. Ketika Anda siap menghubungkan proyek ke Supabase, lakukan 3 langkah mudah berikut:
-
-### 1. Buat Proyek Supabase
-- Buka [supabase.com](https://supabase.com) dan buat proyek baru.
-- Buat sebuah Public Bucket di menu **Storage** dengan nama: `marmoyo-assets`.
-
-### 2. Isi Kredensial di File `.env`
-Buka file `.env` dan perbarui nilai berikut sesuai project dashboard Supabase Anda:
 ```env
-# Ganti koneksi database dari sqlite ke pgsql Supabase
+APP_NAME="Marmoyo Smart-Dine"
+APP_ENV=production
+APP_KEY=base64:NG+khS82AflhQf6IDZJIJ1/kb7bblafu0taUhx10cnA=
+APP_DEBUG=false
+APP_URL=https://marmoyo-smart-dine.vercel.app
+
+LOG_CHANNEL=stderr
+LOG_LEVEL=error
+
+# Supabase Cloud Database Pooler
 DB_CONNECTION=pgsql
-DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com
+DB_HOST=aws-0-ap-northeast-1.pooler.supabase.com
 DB_PORT=5432
 DB_DATABASE=postgres
-DB_USERNAME=postgres.[YOUR_PROJECT_ID]
-DB_PASSWORD=[YOUR_SUPABASE_DB_PASSWORD]
+DB_USERNAME=postgres.ptkqtntsxwfarbhdvcmz
+DB_PASSWORD=marmoyo2026
+DB_SSLMODE=prefer
 
-# Kredensial API & Storage Supabase
-SUPABASE_URL=https://[YOUR_PROJECT_ID].supabase.co
-SUPABASE_ANON_KEY=[YOUR_ANON_KEY]
-SUPABASE_SERVICE_ROLE_KEY=[YOUR_SERVICE_ROLE_KEY]
+# Supabase API & Storage
+SUPABASE_URL=https://ptkqtntsxwfarbhdvcmz.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SUPABASE_STORAGE_BUCKET=marmoyo-assets
-```
 
-### 3. Migrasi Skema ke Supabase PostgreSQL
-Jalankan perintah berikut di terminal:
-```bash
-php artisan migrate --seed
+# Session & Cache Terdistribusi
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+CACHE_STORE=database
+FILESYSTEM_DISK=public
 ```
-Seluruh tabel, indeks foreign key, akun pengguna, 12 meja kedai, serta katalog menu otentik Kedai Mie Marmoyo akan langsung terpasang di database cloud Supabase Anda!
 
 ---
 
-## 🧪 Pengujian Otomatis (Test Suite)
+## 🧪 Pengujian Otomatis (Automated Test Suite)
 
-Untuk menjalankan automated feature test end-to-end:
+Sistem dilengkapi automated test menyeluruh yang memvalidasi integritas alur bisnis:
 ```bash
-php artisan test --filter=MarmoyoSmartDineTest
+php artisan test
 ```
-Pengujian memverifikasi alur:
-1. Scan QR Meja & Buka Menu
-2. Kustomisasi Level Pedas & Penambahan ke Keranjang
-3. Checkout & Auto-Verifikasi QRIS Dinamis
-4. Validasi Uang Tunai di Kasir POS dengan Kalkulator Kembalian
-5. Aksesibilitas Executive Dashboard Pemilik
+
+### Cakupan Pengujian (14 Test Cases, 109 Assertions):
+1. **Self-Ordering Pelanggan**: Scan QR meja valid, pemilihan menu, penambahan keranjang dengan level pedas & topping.
+2. **Pembayaran Digital & Tunai**: Pembuatan QRIS dinamis, verifikasi instan, penerbitan kode tunai, dan validasi kasir.
+3. **POS Kasir Operasional**: Pemantauan antrean pesanan, sakelar ketersediaan stok menu, dan pemrosesan pesanan Take Away (bungkus).
+4. **Keamanan & Peran (RBAC)**: Proteksi akses route admin dari kasir, hak akses tutup shift / rekonsiliasi kas.
+5. **Manajemen Staf**: CRUD staf kasir internal, proteksi anti-hapus diri sendiri, dan proteksi admin terakhir.
+6. **Pengaturan Kedai & Format Struk**: Pembaruan identitas kedai, penyesuaian biaya kemasan, pajak PB1, dan footer struk thermal.
