@@ -246,13 +246,15 @@ class CustomerOrderController extends Controller
         } else {
             // Cash payment token: TUNAI-{table}{suffix}
             $paymentCode = 'TUNAI-' . str_replace('MRM-', '', $order->order_number);
-            $payment = Payment::create([
-                'order_id' => $order->id,
-                'payment_code' => $paymentCode,
-                'method' => 'cash',
-                'amount' => $order->final_amount,
-                'status' => 'pending',
-            ]);
+            $payment = Payment::updateOrCreate(
+                ['order_id' => $order->id],
+                [
+                    'payment_code' => $paymentCode,
+                    'method' => 'cash',
+                    'amount' => $order->final_amount,
+                    'status' => 'pending',
+                ]
+            );
         }
 
         // Clear cart after successful order creation

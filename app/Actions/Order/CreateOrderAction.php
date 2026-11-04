@@ -79,9 +79,11 @@ class CreateOrderAction
             $serviceFee = 0; // Self-ordering is free of service fee
             $finalAmount = max(0, $subtotal - $discountAmount);
 
-            // Generate Order Number: MRM-{table_number}{random_suffix}
-            $randomSuffix = rand(10, 99);
-            $orderNumber = sprintf('MRM-%s%d', $table->table_number, $randomSuffix);
+            // Generate unique Order Number: MRM-{table_number}{random_suffix}
+            do {
+                $randomSuffix = rand(100, 999);
+                $orderNumber = sprintf('MRM-%s%d', $table->table_number, $randomSuffix);
+            } while (Order::where('order_number', $orderNumber)->exists());
 
             // Mark table occupied
             $table->update(['status' => 'occupied']);
