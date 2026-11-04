@@ -23,3 +23,4 @@ return [
         'password' => env('SUPABASE_DB_PASSWORD', ''),
     ],
 ];
+
