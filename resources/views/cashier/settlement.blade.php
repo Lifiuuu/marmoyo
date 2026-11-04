@@ -1,6 +1,6 @@
 @extends('layouts.cashier')
 
-@section('title', 'Rekonsiliasi Kas Harian - Kedai Mie Marmoyo')
+@section('title', 'Rekonsiliasi Kas Harian - Marmoyo Smart-Dine')
 
 @section('content')
 <div class="max-w-2xl mx-auto space-y-6">

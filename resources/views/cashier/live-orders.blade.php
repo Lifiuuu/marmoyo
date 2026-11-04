@@ -1,6 +1,6 @@
 @extends('layouts.cashier')
 
-@section('title', 'Live Order POS - Kedai Mie Marmoyo')
+@section('title', 'Live Order POS - Marmoyo Smart-Dine')
 
 @section('content')
 <div class="space-y-6">

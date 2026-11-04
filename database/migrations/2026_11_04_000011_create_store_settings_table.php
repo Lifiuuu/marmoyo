@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('store_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('store_name')->default('Kedai Mie Marmoyo');
+            $table->string('store_name')->default('Marmoyo Smart-Dine');
             $table->string('store_tagline')->default('Authentic Spicy Noodles & Dimsum');
             $table->string('store_address')->default('Jl. Marmoyo No. 12, Surabaya, Jawa Timur');
             $table->string('store_phone')->default('0812-3456-7890');

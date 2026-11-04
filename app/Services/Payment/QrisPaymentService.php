@@ -27,7 +27,7 @@ class QrisPaymentService
             $merchantId = 'ID102026MARMOYO01';
             $qrisPayload = "00020101021226670016ID.CO.QRIS.WWW0118{$merchantId}520458125303360540" .
                 number_format($order->final_amount, 2, '', '') .
-                "5802ID5920KEDAI MIE MARMOYO6008SURABAYA62070703A016304" . strtoupper(substr(md5($order->order_number), 0, 4));
+                "5802ID5918MARMOYO SMART-DINE6008SURABAYA62070703A016304" . strtoupper(substr(md5($order->order_number), 0, 4));
 
             $payment = Payment::updateOrCreate([
                 'order_id' => $order->id,

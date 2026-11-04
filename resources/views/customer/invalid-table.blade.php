@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Meja Tidak Valid - Kedai Mie Marmoyo')
+@section('title', 'Meja Tidak Valid - Marmoyo Smart-Dine')
 
 @section('content')
 <div class="py-12 text-center">

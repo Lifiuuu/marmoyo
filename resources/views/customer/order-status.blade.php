@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Status Pesanan - Kedai Mie Marmoyo')
+@section('title', 'Status Pesanan - Marmoyo Smart-Dine')
 
 @section('content')
 <div class="space-y-4 pb-8">
@@ -30,7 +30,7 @@
                     {{ in_array($order->status, ['cooking', 'menunggu', 'ready']) ? 'Menunggu Disajikan' : 'Selesai' }}
                 </span>
             </div>
-            <p class="text-[11px] text-stone-500">Pesanan Anda sudah masuk dan sedang disiapkan oleh Kedai Mie Marmoyo.</p>
+            <p class="text-[11px] text-stone-500">Pesanan Anda sudah masuk dan sedang disiapkan oleh tim Marmoyo Smart-Dine.</p>
 
             <div class="bg-stone-50 border border-stone-200 rounded-xl p-2.5 flex items-center justify-between text-xs">
                 <span class="text-stone-600 font-bold">Estimasi Penyajian:</span>

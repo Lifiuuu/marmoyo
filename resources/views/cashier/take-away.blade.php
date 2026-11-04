@@ -1,6 +1,6 @@
 @extends('layouts.cashier')
 
-@section('title', 'Input Pesanan Take Away (Bungkus) - Kedai Mie Marmoyo')
+@section('title', 'Input Pesanan Take Away (Bungkus) - Marmoyo Smart-Dine')
 
 @section('content')
 <div class="space-y-6 pb-16">

@@ -29,7 +29,7 @@ class MarmoyoSmartDineTest extends TestCase
 
         $menuResponse = $this->get('/menu');
         $menuResponse->assertStatus(200);
-        $menuResponse->assertSee('Kedai Mie Marmoyo');
+        $menuResponse->assertSee('Marmoyo Smart-Dine');
         $menuResponse->assertSee('Mie Kuah Mala Pedas Nampol');
     }
 
@@ -134,7 +134,7 @@ class MarmoyoSmartDineTest extends TestCase
         // Check cashier live-orders view
         $liveOrdersResponse = $this->get('/cashier/live-orders');
         $liveOrdersResponse->assertStatus(200);
-        $liveOrdersResponse->assertSee('Marmoyo POS Kasir');
+        $liveOrdersResponse->assertSee('Marmoyo Smart-Dine POS');
         $liveOrdersResponse->assertSee('Validasi Pembayaran Tunai');
 
         $validateResponse = $this->post('/cashier/validate-cash', [
@@ -381,7 +381,7 @@ class MarmoyoSmartDineTest extends TestCase
         $response = $this->actingAs($admin)->get('/admin/settings');
         $response->assertStatus(200);
         $response->assertSee('Pengaturan Kedai &amp; Format Struk', false);
-        $response->assertSee('Kedai Mie Marmoyo');
+        $response->assertSee('Marmoyo Smart-Dine');
 
         // 2. Admin can update store identity & pricing
         $updateResponse = $this->actingAs($admin)->put('/admin/settings', [

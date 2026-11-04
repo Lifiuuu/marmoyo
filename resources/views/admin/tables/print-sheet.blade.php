@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Lembar Cetak QR Code Meja - Kedai Mie Marmoyo</title>
+    <title>Lembar Cetak QR Code Meja - Marmoyo Smart-Dine</title>
     <style>
         body { font-family: sans-serif; margin: 20px; background: #fff; }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -32,7 +32,7 @@
         @foreach($tables as $table)
             @php $qrUrl = url("/scan?table={$table->table_number}&token={$table->qr_token}"); @endphp
             <div class="card">
-                <div class="header">KEDAI MIE MARMOYO</div>
+                <div class="header">MARMOYO SMART-DINE</div>
                 <div class="sub">Self-Ordering System</div>
                 <div class="table-badge">MEJA {{ $table->table_number }}</div>
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ urlencode($qrUrl) }}" alt="QR Meja {{ $table->table_number }}" class="qr-img">

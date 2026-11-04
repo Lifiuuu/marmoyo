@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Kedai Mie Marmoyo - Self Ordering')</title>
+    <title>@yield('title', 'Marmoyo Smart-Dine - Self Ordering')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,8 +23,8 @@
                 <a href="{{ route('customer.menu') }}" class="flex items-center space-x-2">
                     <span class="w-8 h-8 rounded-full bg-red-600 text-white font-extrabold flex items-center justify-center text-sm shadow-md shrink-0">M</span>
                     <div>
-                        <h1 class="text-xs sm:text-sm font-extrabold text-stone-900 leading-tight">Kedai Mie Marmoyo</h1>
-                        <p class="text-[9px] sm:text-[10px] text-stone-500">Smart-Dine Self-Ordering</p>
+                        <h1 class="text-xs sm:text-sm font-extrabold text-stone-900 leading-tight">Marmoyo Smart-Dine</h1>
+                        <p class="text-[9px] sm:text-[10px] text-stone-500">Self-Ordering QR System</p>
                     </div>
                 </a>
             </div>

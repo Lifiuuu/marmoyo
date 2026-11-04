@@ -31,7 +31,7 @@ class StoreSetting extends Model
     public static function current(): self
     {
         return static::firstOrCreate(['id' => 1], [
-            'store_name' => 'Kedai Mie Marmoyo',
+            'store_name' => 'Marmoyo Smart-Dine',
             'store_tagline' => 'Authentic Spicy Noodles & Dimsum',
             'store_address' => 'Jl. Marmoyo No. 12, Surabaya, Jawa Timur',
             'store_phone' => '0812-3456-7890',

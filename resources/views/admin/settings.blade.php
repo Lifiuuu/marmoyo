@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Pengaturan Kedai & Struk - Kedai Mie Marmoyo')
+@section('title', 'Pengaturan Kedai & Struk - Marmoyo Smart-Dine')
 
 @section('content')
 <div class="space-y-6">
@@ -257,7 +257,7 @@
     const prevPhone = document.getElementById('prev_phone');
     const prevFooter = document.getElementById('prev_footer');
 
-    inpName.addEventListener('input', () => prevName.textContent = inpName.value || 'KEDAI MIE MARMOYO');
+    inpName.addEventListener('input', () => prevName.textContent = inpName.value || 'MARMOYO SMART-DINE');
     inpTagline.addEventListener('input', () => prevTagline.textContent = inpTagline.value);
     inpAddress.addEventListener('input', () => prevAddress.textContent = inpAddress.value);
     inpPhone.addEventListener('input', () => prevPhone.textContent = 'Telp/WA: ' + inpPhone.value);

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin / Owner Dashboard - Kedai Mie Marmoyo')</title>
+    <title>@yield('title', 'Admin / Owner Dashboard - Marmoyo Smart-Dine')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
             <div class="p-5 border-b border-stone-100 flex items-center space-x-3">
                 <span class="w-9 h-9 rounded-xl bg-red-600 text-white font-black flex items-center justify-center text-base shadow-sm">M</span>
                 <div>
-                    <h1 class="text-sm font-extrabold text-stone-900">Mie Marmoyo</h1>
+                    <h1 class="text-sm font-extrabold text-stone-900">Marmoyo Smart-Dine</h1>
                     <p class="text-[10px] text-stone-500 font-semibold tracking-wider uppercase">Owner Executive Panel</p>
                 </div>
             </div>

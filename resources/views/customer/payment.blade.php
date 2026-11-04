@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Pembayaran Pesanan - Kedai Mie Marmoyo')
+@section('title', 'Pembayaran Pesanan - Marmoyo Smart-Dine')
 
 @section('content')
 <div class="space-y-4 pb-6">

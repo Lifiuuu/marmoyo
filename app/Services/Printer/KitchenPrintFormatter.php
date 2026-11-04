@@ -19,7 +19,7 @@ class KitchenPrintFormatter
 
         $out = [];
         $out[] = $this->centerText("TIKET PESANAN", $cols);
-        $out[] = $this->centerText("KEDAI MIE MARMOYO", $cols);
+        $out[] = $this->centerText("MARMOYO SMART-DINE", $cols);
         $out[] = $doubleDivider;
 
         if ($order->isTakeAway()) {

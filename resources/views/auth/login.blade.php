@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk Sistem - Kedai Mie Marmoyo</title>
+    <title>Masuk Sistem - Marmoyo Smart-Dine</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,8 +15,8 @@
         <!-- Logo -->
         <div class="text-center space-y-2">
             <span class="w-12 h-12 rounded-2xl bg-red-600 text-white font-black text-xl inline-flex items-center justify-center shadow-lg">M</span>
-            <h1 class="text-lg font-black text-stone-900">Kedai Mie Marmoyo</h1>
-            <p class="text-xs text-stone-500">Portal Operasional Kasir & Dashboard Owner</p>
+            <h1 class="text-lg font-black text-stone-900">Marmoyo Smart-Dine</h1>
+            <p class="text-xs text-stone-500">Portal Operasional Kasir &amp; Dashboard Owner</p>
         </div>
 
         @if(session('success'))
