@@ -9,7 +9,7 @@
             <h3 class="font-extrabold text-stone-900 text-xs sm:text-sm">Formulir Menu Baru</h3>
             <p class="text-[11px] sm:text-xs text-stone-400">Tambahkan item makanan, minuman, atau dimsum ke katalog Marmoyo</p>
         </div>
-        <a href="{{ route('admin.menus.index') }}" class="text-xs font-bold text-stone-500 hover:text-stone-800 transition">&larr; Kembali</a>
+        <a href="{{ route('admin.menus.index') }}" class="text-xs font-bold text-stone-500 hover:text-stone-800 transition">Kembali</a>
     </div>
 
     <form action="{{ route('admin.menus.store') }}" method="POST" enctype="multipart/form-data" class="space-y-3.5 sm:space-y-4 text-xs">
@@ -42,7 +42,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-stone-50 rounded-xl border border-stone-200">
             <label class="flex items-center space-x-2 cursor-pointer">
                 <input type="checkbox" name="is_spicy" value="1" class="rounded text-red-600 focus:ring-red-500">
-                <span class="font-bold text-stone-800">Menu Bercita Rasa Pedas 🌶️</span>
+                <span class="font-bold text-stone-800">Menu Bercita Rasa Pedas</span>
             </label>
 
             <div class="space-y-1">
@@ -58,10 +58,12 @@
         </div>
 
         <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 flex items-center space-x-2.5">
-            <span class="text-base shrink-0">📊</span>
+            <svg class="w-5 h-5 text-stone-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
             <div>
                 <span class="font-bold text-stone-900 block">Perhitungan Bestseller Otomatis</span>
-                <p class="text-[10px] text-stone-500">Menu baru akan otomatis dipromosikan sebagai Bestseller oleh sistem AI setelah mencapai volume transaksi tertinggi.</p>
+                <p class="text-[10px] text-stone-500">Menu baru akan otomatis dipromosikan sebagai Bestseller oleh sistem setelah mencapai volume transaksi tertinggi.</p>
             </div>
         </div>
 
@@ -71,7 +73,7 @@
         </div>
 
         <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl shadow transition active:scale-95">
-            Simpan &amp; Publikasikan ke Menu Pelanggan &rarr;
+            Simpan &amp; Publikasikan ke Menu Pelanggan
         </button>
     </form>
 </div>

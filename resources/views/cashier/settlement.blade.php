@@ -90,7 +90,7 @@
             </div>
 
             <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white text-xs font-black py-3 sm:py-3.5 rounded-xl transition shadow-lg active:scale-95 flex items-center justify-center space-x-2">
-                <span>🔒 Tutup Shift &amp; Rekonsiliasi Kas</span>
+                <span>Tutup Shift &amp; Rekonsiliasi Kas</span>
             </button>
         </form>
     @endif

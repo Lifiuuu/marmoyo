@@ -11,7 +11,10 @@
         </div>
         <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
             <a href="{{ route('admin.tables.print-sheet') }}" target="_blank" class="bg-stone-800 hover:bg-stone-900 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow transition flex items-center space-x-1.5 active:scale-95">
-                <span>🖨️ Cetak Stiker QR</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                <span>Cetak Stiker QR</span>
             </a>
             <button onclick="document.getElementById('add-table-modal').classList.remove('hidden')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow transition active:scale-95">
                 + Tambah Meja
@@ -36,14 +39,14 @@
                     <div class="bg-stone-50 p-3 rounded-xl border border-stone-200 text-center my-3">
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data={{ urlencode($qrUrl) }}" alt="QR Meja {{ $table->table_number }}" class="w-28 h-28 mx-auto rounded shadow-xs">
                         <div class="mt-2 flex items-center justify-center space-x-1 text-[10px] text-emerald-700 bg-emerald-50 py-1 px-2 rounded-md font-bold">
-                            <span>🔒 QR Permanen &amp; Siap Cetak</span>
+                            <span>QR Permanen &amp; Siap Cetak</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="space-y-2 text-xs">
                     <a href="{{ $qrUrl }}" target="_blank" class="block w-full bg-stone-100 hover:bg-stone-200 text-stone-800 text-center py-2 rounded-xl font-bold transition">
-                        🔗 Uji Buka Menu Meja
+                        Uji Buka Menu Meja
                     </a>
                     
                     <form action="{{ route('admin.tables.destroy', $table->id) }}" method="POST" onsubmit="return confirm('Hapus Meja {{ $table->table_number }} dari sistem?')">

@@ -14,8 +14,10 @@
             <p class="text-[11px] sm:text-xs text-stone-400 mt-0.5">Pilih menu, input nama pemesan, dan proses pembayaran langsung di kasir.</p>
         </div>
         <div class="shrink-0">
-            <a href="{{ route('cashier.live-orders') }}" class="inline-flex items-center space-x-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-stone-700 hover:bg-stone-800 text-stone-300 text-xs font-bold transition">
-                <span>&larr;</span>
+            <a href="{{ route('cashier.live-orders') }}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-stone-700 hover:bg-stone-800 text-stone-300 text-xs font-bold transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
                 <span>Kembali ke Live Orders</span>
             </a>
         </div>
@@ -112,7 +114,9 @@
                 <div class="space-y-2 max-h-56 overflow-y-auto pr-1 divide-y divide-stone-900" id="cart-items-container">
                     <!-- Empty State -->
                     <div id="cart-empty-state" class="flex flex-col items-center justify-center text-center py-6 text-stone-600">
-                        <span class="text-2xl mb-1">🛒</span>
+                        <svg class="w-7 h-7 mb-1 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                        </svg>
                         <p class="text-xs font-semibold">Keranjang masih kosong</p>
                         <p class="text-[10px] text-stone-600 mt-0.5">Pilih menu di atas/samping untuk menambahkan</p>
                     </div>
@@ -204,12 +208,14 @@
 <!-- Floating Action Bar on Mobile/Tablet when items in cart -->
 <div id="mobile-cart-floater" onclick="scrollToTakeAwayBill()" class="hidden fixed bottom-14 sm:bottom-16 left-3 right-3 lg:hidden z-30 bg-amber-500 hover:bg-amber-400 text-stone-950 px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between font-black text-xs active:scale-95 transition cursor-pointer">
     <div class="flex items-center space-x-2">
-        <span class="text-sm">🛒</span>
+        <svg class="w-4 h-4 text-stone-950 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+        </svg>
         <span id="floater-count-text">0 Menu Dipilih</span>
     </div>
     <div class="flex items-center space-x-1.5">
         <span id="floater-amount-text" class="text-sm">Rp0</span>
-        <span>&rarr; Bayar</span>
+        <span>Bayar</span>
     </div>
 </div>
 
@@ -421,7 +427,9 @@
         if (cart.length === 0) {
             container.innerHTML = `
                 <div id="cart-empty-state" class="flex flex-col items-center justify-center text-center py-6 text-stone-600">
-                    <span class="text-2xl mb-1">🛒</span>
+                    <svg class="w-7 h-7 mb-1 text-stone-600 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
                     <p class="text-xs font-semibold">Keranjang masih kosong</p>
                     <p class="text-[10px] text-stone-600 mt-0.5">Sentuh menu di atas/samping untuk menambahkan</p>
                 </div>

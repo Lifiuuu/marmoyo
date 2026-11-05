@@ -41,9 +41,9 @@ class AiMenuRecommendationService
             return [
                 'active' => true,
                 'algorithm' => 'Market Basket Analysis (Apriori Co-occurrence Mining)',
-                'title' => 'Rekomendasi Cerdas AI (Sering Dibeli Bersama)',
-                'badge' => 'Smart Pairing AI',
-                'message' => 'Analisis Machine Learning mendeteksi menu berikut memiliki probabilitas pembelian bersama tertinggi:',
+                'title' => 'Menu Pendamping Favorit (Sering Dipesan Bersama)',
+                'badge' => 'Sering Dipesan',
+                'message' => 'Pelanggan lain paling sering memesan menu ini bersamaan:',
                 'items' => $associationRecs,
             ];
         }
@@ -57,9 +57,9 @@ class AiMenuRecommendationService
             return [
                 'active' => true,
                 'algorithm' => 'Content-Based Flavor Complementarity Matrix',
-                'title' => 'Rekomendasi Spesial AI (Perpaduan Rasa)',
-                'badge' => 'Sensory Pairing',
-                'message' => 'AI mendeteksi sensasi pedas gurih di keranjang Anda. Minuman segar & dimsum krispi ini adalah kombinasi penyeimbang paling ideal:',
+                'title' => 'Rekomendasi Menu Pendamping (Perpaduan Rasa)',
+                'badge' => 'Kombinasi Pas',
+                'message' => 'Minuman segar & dimsum krispi ini adalah kombinasi penyeimbang paling ideal untuk pesanan Anda:',
                 'items' => $contentRecs,
             ];
         }

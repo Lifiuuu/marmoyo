@@ -19,33 +19,46 @@
     </div>
 
     @if($order->payment_method === 'qris')
-        <!-- ==================== QRIS INSTAN TAB (Page 28 SRS) ==================== -->
-        <div class="bg-white border-2 border-red-500 rounded-2xl p-5 shadow-lg text-center space-y-4">
+        @php
+            $qrImageSrc = !empty($payment->qris_url) && !str_contains($payment->qris_url, 'mock-')
+                ? $payment->qris_url
+                : 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' . urlencode($payment->qris_payload ?? 'QRIS_MARMOYO_'.$order->order_number);
+            $remainingSeconds = $payment && $payment->expires_at ? max(0, (int) now()->diffInSeconds($payment->expires_at, false)) : 900;
+        @endphp
+
+        <!-- ==================== QRIS INSTAN MIDTRANS TAB ==================== -->
+        <div id="qris-card" class="bg-white border-2 border-red-500 rounded-2xl p-5 shadow-lg text-center space-y-4">
             <div class="flex items-center justify-between border-b border-stone-100 pb-2">
                 <div class="flex items-center space-x-1.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-xs font-extrabold text-stone-900">QRIS Instan Marmoyo</span>
+                    <span class="text-xs font-extrabold text-stone-900">QRIS Instan (Midtrans)</span>
                 </div>
                 <!-- Countdown Timer -->
                 <div class="bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full text-[11px] font-black flex items-center space-x-1">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span id="countdown">04:59</span>
+                    <span id="countdown">15:00</span>
                 </div>
             </div>
 
-            <p class="text-[11px] text-stone-500">Pindai QR ini memakai GoPay, OVO, ShopeePay, BCA, atau mobile banking lainnya:</p>
+            <p class="text-[11px] text-stone-500">Pindai QR ini memakai GoPay, OVO, ShopeePay, BCA, atau aplikasi mobile banking berlogo QRIS:</p>
 
             <!-- Dynamic QR Canvas / Display -->
             <div class="bg-stone-50 p-4 rounded-xl border border-stone-200 inline-block shadow-inner">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($payment->qris_payload ?? 'QRIS_MARMOYO_'.$order->order_number) }}" alt="QRIS Code" class="w-44 h-44 mx-auto rounded-lg shadow-xs">
-                <p class="text-[9px] text-stone-400 font-mono mt-2 tracking-widest uppercase">NMID: ID102026MARMOYO01</p>
+                <img src="{{ $qrImageSrc }}" alt="QRIS Code Midtrans" class="w-48 h-48 mx-auto rounded-lg shadow-xs bg-white p-1">
+                <div class="flex items-center justify-center space-x-2 mt-2">
+                    <span class="inline-block bg-stone-200 text-stone-700 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">QRIS Nasional</span>
+                    <span class="text-[9px] text-stone-400 font-mono tracking-wider">MIDTRANS</span>
+                </div>
             </div>
 
             <div>
                 <p class="text-xs text-stone-500">Total Tagihan:</p>
                 <p class="text-xl font-black text-stone-900">Rp{{ number_format($order->final_amount, 0, ',', '.') }}</p>
+                @if($payment && $payment->transaction_id)
+                    <p class="text-[10px] text-stone-400 font-mono mt-0.5">Ref: {{ substr($payment->transaction_id, 0, 18) }}...</p>
+                @endif
             </div>
 
             <!-- Auto-verification simulation button -->
@@ -55,7 +68,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
-                    <span>Saya Sudah Membayar &rarr;</span>
+                    <span>Saya Sudah Membayar</span>
                 </button>
             </form>
 
@@ -72,17 +85,27 @@
         </div>
 
         <script>
-            let duration = 300;
+            let duration = {{ $remainingSeconds }};
             const timerDisplay = document.getElementById('countdown');
-            const interval = setInterval(function() {
-                let minutes = parseInt(duration / 60, 10);
-                let seconds = parseInt(duration % 60, 10);
+
+            function updateCountdown() {
+                if (duration <= 0) {
+                    timerDisplay.textContent = "00:00 (Kedaluwarsa)";
+                    return;
+                }
+                let minutes = Math.floor(duration / 60);
+                let seconds = duration % 60;
                 minutes = minutes < 10 ? "0" + minutes : minutes;
                 seconds = seconds < 10 ? "0" + seconds : seconds;
                 timerDisplay.textContent = minutes + ":" + seconds;
-                if (--duration < 0) {
-                    clearInterval(interval);
-                    timerDisplay.textContent = "00:00 (Kedaluwarsa)";
+                duration--;
+            }
+
+            updateCountdown();
+            const timerInterval = setInterval(function() {
+                updateCountdown();
+                if (duration < 0) {
+                    clearInterval(timerInterval);
                 }
             }, 1000);
         </script>
@@ -144,7 +167,7 @@
                     </button>
                 </form>
                 <a href="{{ route('customer.order-status', ['orderNumber' => $order->order_number]) }}" class="text-red-600 font-bold hover:underline">
-                    Pantau Status &rarr;
+                    Pantau Status
                 </a>
             </div>
         </div>

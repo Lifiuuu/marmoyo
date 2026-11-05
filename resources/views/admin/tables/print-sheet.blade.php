@@ -21,7 +21,7 @@
 <body>
     <div class="no-print" style="margin-bottom: 20px; padding: 12px; background: #fef2f2; border: 1px solid #f87171; border-radius: 8px;">
         <button onclick="window.print()" style="background: #dc2626; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
-            🖨️ Cetak Lembar Stiker Meja Sekarang
+            Cetak Lembar Stiker Meja Sekarang
         </button>
         <span style="font-size: 12px; margin-left: 12px; color: #991b1b;">
             Gunakan kertas stiker A4 untuk ditempelkan di sudut meja kedai.

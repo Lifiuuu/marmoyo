@@ -9,7 +9,7 @@
         <div class="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-xs">
             <span class="text-[10px] sm:text-xs font-bold text-stone-400 uppercase tracking-wider">Omzet Penjualan Hari Ini</span>
             <p class="text-xl sm:text-2xl font-black text-stone-900 mt-1">Rp{{ number_format($totalOmzet, 0, ',', '.') }}</p>
-            <span class="text-[10px] sm:text-[11px] text-emerald-600 font-semibold mt-0.5 inline-block">↑ Terhitung otomatis dari transaksi lunas</span>
+            <span class="text-[10px] sm:text-[11px] text-emerald-600 font-semibold mt-0.5 inline-block">Terhitung otomatis dari transaksi lunas</span>
         </div>
 
         <div class="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-xs">
@@ -20,7 +20,7 @@
 
         <div class="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-xs">
             <span class="text-[10px] sm:text-xs font-bold text-stone-400 uppercase tracking-wider">Kepuasan Pelanggan</span>
-            <p class="text-xl sm:text-2xl font-black text-amber-500 mt-1">⭐ {{ $averageRating }} / 10</p>
+            <p class="text-xl sm:text-2xl font-black text-amber-600 mt-1">{{ $averageRating }} / 10</p>
             <span class="text-[10px] sm:text-[11px] text-stone-500 mt-0.5 inline-block">Riset UTS Design Thinking</span>
         </div>
 
@@ -119,7 +119,7 @@
     <div class="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3 sm:space-y-4">
         <div class="flex items-center justify-between">
             <h3 class="font-extrabold text-stone-900 text-xs sm:text-sm">Transaksi Terakhir Masuk</h3>
-            <a href="{{ route('cashier.live-orders') }}" class="text-xs font-bold text-red-600 hover:underline">Buka Live POS &rarr;</a>
+            <a href="{{ route('cashier.live-orders') }}" class="text-xs font-bold text-red-600 hover:underline">Buka Live POS</a>
         </div>
 
         <div class="overflow-x-auto">

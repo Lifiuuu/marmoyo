@@ -12,8 +12,11 @@
             </svg>
             <span>Tambah Menu Lain</span>
         </a>
-        <div class="flex items-center space-x-1 text-xs font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-full">
-            <span>🍽️ Makan di Tempat (Dine-in)</span>
+        <div class="flex items-center space-x-1.5 text-xs font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-full">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            <span>Makan di Tempat (Dine-in)</span>
         </div>
     </div>
 
@@ -99,7 +102,7 @@
             <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-3.5 shadow-sm space-y-2.5">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-1.5">
-                        <span class="text-amber-600 font-bold text-xs">✨ {{ $aiRecommendation['title'] }}</span>
+                        <span class="text-amber-800 font-bold text-xs">{{ $aiRecommendation['title'] }}</span>
                     </div>
                     <span class="text-[9px] font-black uppercase bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded">
                         {{ $aiRecommendation['badge'] }}
@@ -144,7 +147,9 @@
             <!-- Promo Voucher Card (Page 27 SRS) -->
             <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="text-base">🏷️</span>
+                    <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                    </svg>
                     <div>
                         <p class="text-xs font-extrabold text-emerald-900">Promo "MAKANHEMAT" Aktif!</p>
                         <p class="text-[10px] text-emerald-700">Potongan langsung Rp3.000 untuk transaksi Anda</p>
@@ -205,8 +210,10 @@
                     <!-- Opsi 1: QRIS Instan -->
                     <label id="payment-card-qris" onclick="selectPaymentMethod('qris')" class="payment-method-card p-3 rounded-2xl border-2 {{ old('payment_method') === 'qris' ? 'border-red-500 bg-red-50/50 ring-2 ring-red-500/20' : 'border-stone-200 hover:border-red-300 bg-white' }} cursor-pointer flex flex-col justify-between space-y-2 transition-all shadow-xs">
                         <div class="flex items-center justify-between">
-                            <span class="font-extrabold text-stone-900 flex items-center space-x-1">
-                                <span>📱</span>
+                            <span class="font-extrabold text-stone-900 flex items-center space-x-1.5">
+                                <svg class="w-4 h-4 text-stone-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                </svg>
                                 <span>QRIS Instan</span>
                             </span>
                             <input type="radio" name="payment_method" value="qris" {{ old('payment_method') === 'qris' ? 'checked' : '' }} required class="text-red-600 focus:ring-red-500">
@@ -217,8 +224,10 @@
                     <!-- Opsi 2: Tunai di Kasir -->
                     <label id="payment-card-cash" onclick="selectPaymentMethod('cash')" class="payment-method-card p-3 rounded-2xl border-2 {{ old('payment_method') === 'cash' ? 'border-red-500 bg-red-50/50 ring-2 ring-red-500/20' : 'border-stone-200 hover:border-red-300 bg-white' }} cursor-pointer flex flex-col justify-between space-y-2 transition-all shadow-xs">
                         <div class="flex items-center justify-between">
-                            <span class="font-extrabold text-stone-900 flex items-center space-x-1">
-                                <span>💵</span>
+                            <span class="font-extrabold text-stone-900 flex items-center space-x-1.5">
+                                <svg class="w-4 h-4 text-stone-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
                                 <span>Tunai di Kasir</span>
                             </span>
                             <input type="radio" name="payment_method" value="cash" {{ old('payment_method') === 'cash' ? 'checked' : '' }} required class="text-red-600 focus:ring-red-500">
@@ -229,9 +238,8 @@
             </div>
 
             <!-- Submit Button (Page 27 SRS) -->
-            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold py-3.5 rounded-xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition">
+            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold py-3.5 rounded-xl shadow-lg flex items-center justify-center active:scale-95 transition">
                 <span>Konfirmasi & Lanjutkan Pesanan</span>
-                <span>&rarr;</span>
             </button>
         </form>
 

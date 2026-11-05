@@ -51,7 +51,7 @@
             <h3 class="text-sm font-extrabold text-amber-900">Menunggu Pembayaran</h3>
             <p class="text-[11px] text-amber-700">Pesanan akan segera disiapkan setelah pembayaran divalidasi di kasir.</p>
             <a href="{{ route('customer.payment', ['orderNumber' => $order->order_number]) }}" class="inline-block bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl shadow">
-                Selesaikan Pembayaran Sekarang &rarr;
+                Selesaikan Pembayaran Sekarang
             </a>
         </div>
     @endif
@@ -106,8 +106,11 @@
         </div>
 
         <!-- Download Digital Receipt Button (Page 28 SRS) -->
-        <a href="{{ route('customer.download-receipt', ['orderNumber' => $order->order_number]) }}" class="w-full bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold py-2 rounded-xl text-center text-xs block transition">
-            📥 Unduh Bukti Pembayaran / Struk Digital
+        <a href="{{ route('customer.download-receipt', ['orderNumber' => $order->order_number]) }}" class="w-full bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold py-2 rounded-xl text-center text-xs flex items-center justify-center space-x-1.5 transition">
+            <svg class="w-4 h-4 text-stone-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span>Unduh Bukti Pembayaran / Struk Digital</span>
         </a>
     </div>
 </div>

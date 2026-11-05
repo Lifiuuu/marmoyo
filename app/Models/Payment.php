@@ -13,11 +13,14 @@ class Payment extends Model
     protected $fillable = [
         'order_id',
         'payment_code',
+        'transaction_id',
         'method',
         'amount',
         'cash_received',
         'cash_change',
         'qris_payload',
+        'qris_url',
+        'payload_meta',
         'status',
         'expires_at',
         'paid_at',
@@ -27,6 +30,7 @@ class Payment extends Model
         'amount' => 'decimal:2',
         'cash_received' => 'decimal:2',
         'cash_change' => 'decimal:2',
+        'payload_meta' => 'array',
         'expires_at' => 'datetime',
         'paid_at' => 'datetime',
     ];

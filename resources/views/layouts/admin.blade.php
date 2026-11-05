@@ -187,10 +187,9 @@
 
             <div class="flex items-center space-x-2 sm:space-x-3 text-xs shrink-0">
                 <span class="text-stone-500 hidden lg:inline">{{ now()->translatedFormat('l, d F Y') }}</span>
-                <a href="{{ route('cashier.live-orders') }}" target="_blank" class="bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold px-2.5 sm:px-3 py-1.5 rounded-xl border border-stone-200 transition text-[11px] sm:text-xs flex items-center space-x-1">
+                <a href="{{ route('cashier.live-orders') }}" target="_blank" class="bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold px-2.5 sm:px-3 py-1.5 rounded-xl border border-stone-200 transition text-[11px] sm:text-xs flex items-center">
                     <span class="hidden sm:inline">Buka Terminal POS Kasir</span>
                     <span class="sm:hidden">Terminal POS</span>
-                    <span>&rarr;</span>
                 </a>
             </div>
         </header>

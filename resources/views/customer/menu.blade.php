@@ -8,8 +8,8 @@
     @if($featuredMenu)
         <div class="relative bg-gradient-to-r from-red-600 to-amber-600 rounded-2xl p-4 text-white shadow-lg overflow-hidden">
             <div class="relative z-10 max-w-[65%]">
-                <span class="inline-block bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase mb-1">
-                    🔥 Rekomendasi Terlaris
+                <span class="inline-block bg-white/20 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase mb-1">
+                    Rekomendasi Terlaris
                 </span>
                 <h2 class="text-base font-extrabold leading-tight">{{ $featuredMenu->name }}</h2>
                 <p class="text-[11px] text-red-100 mt-1 line-clamp-2">{{ $featuredMenu->description }}</p>
