@@ -183,34 +183,74 @@
                 </div>
             </div>
 
-            <!-- Pilih Metode Pembayaran (Page 27 & 28 SRS) -->
+            <!-- Pilih Metode Pembayaran (Wajib Dipilih oleh Pelanggan) -->
             <div class="space-y-2">
-                <label class="block text-xs font-bold text-stone-800">Pilih Metode Pembayaran</label>
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                    <label class="p-3 rounded-xl border-2 border-red-500 bg-red-50/40 hover:bg-red-50 cursor-pointer flex flex-col justify-between space-y-1">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-stone-800">
+                        Pilih Metode Pembayaran <span class="text-red-500">*</span>
+                    </label>
+                    <span class="text-[10px] text-stone-500 font-medium">Wajib pilih salah satu</span>
+                </div>
+
+                @if($errors->has('payment_method'))
+                    <div class="p-2.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center space-x-2">
+                        <svg class="w-4 h-4 shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="font-bold text-[11px]">{{ $errors->first('payment_method') }}</span>
+                    </div>
+                @endif
+
+                <div class="grid grid-cols-2 gap-2.5 text-xs">
+                    <!-- Opsi 1: QRIS Instan -->
+                    <label id="payment-card-qris" onclick="selectPaymentMethod('qris')" class="payment-method-card p-3 rounded-2xl border-2 {{ old('payment_method') === 'qris' ? 'border-red-500 bg-red-50/50 ring-2 ring-red-500/20' : 'border-stone-200 hover:border-red-300 bg-white' }} cursor-pointer flex flex-col justify-between space-y-2 transition-all shadow-xs">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-stone-900">QRIS Instan</span>
-                            <input type="radio" name="payment_method" value="qris" checked class="text-red-600 focus:ring-red-500">
+                            <span class="font-extrabold text-stone-900 flex items-center space-x-1">
+                                <span>📱</span>
+                                <span>QRIS Instan</span>
+                            </span>
+                            <input type="radio" name="payment_method" value="qris" {{ old('payment_method') === 'qris' ? 'checked' : '' }} required class="text-red-600 focus:ring-red-500">
                         </div>
-                        <p class="text-[10px] text-stone-500">Verifikasi otomatis dari HP tanpa antre</p>
+                        <p class="text-[10px] text-stone-500 leading-snug">Verifikasi otomatis tanpa perlu antre di kasir</p>
                     </label>
 
-                    <label class="p-3 rounded-xl border border-stone-200 hover:border-stone-400 bg-white cursor-pointer flex flex-col justify-between space-y-1">
+                    <!-- Opsi 2: Tunai di Kasir -->
+                    <label id="payment-card-cash" onclick="selectPaymentMethod('cash')" class="payment-method-card p-3 rounded-2xl border-2 {{ old('payment_method') === 'cash' ? 'border-red-500 bg-red-50/50 ring-2 ring-red-500/20' : 'border-stone-200 hover:border-red-300 bg-white' }} cursor-pointer flex flex-col justify-between space-y-2 transition-all shadow-xs">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-stone-900">Tunai di Kasir</span>
-                            <input type="radio" name="payment_method" value="cash" class="text-red-600 focus:ring-red-500">
+                            <span class="font-extrabold text-stone-900 flex items-center space-x-1">
+                                <span>💵</span>
+                                <span>Tunai di Kasir</span>
+                            </span>
+                            <input type="radio" name="payment_method" value="cash" {{ old('payment_method') === 'cash' ? 'checked' : '' }} required class="text-red-600 focus:ring-red-500">
                         </div>
-                        <p class="text-[10px] text-stone-500">Serahkan uang tunai ke kasir</p>
+                        <p class="text-[10px] text-stone-500 leading-snug">Serahkan uang fisik langsung ke meja kasir</p>
                     </label>
                 </div>
             </div>
 
             <!-- Submit Button (Page 27 SRS) -->
-            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold py-3 rounded-xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition">
-                <span>Pilih Pembayaran & Konfirmasi Pesanan</span>
+            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold py-3.5 rounded-xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition">
+                <span>Konfirmasi & Lanjutkan Pesanan</span>
                 <span>&rarr;</span>
             </button>
         </form>
+
+        <script>
+            function selectPaymentMethod(method) {
+                document.querySelectorAll('.payment-method-card').forEach(card => {
+                    card.classList.remove('border-red-500', 'bg-red-50/50', 'ring-2', 'ring-red-500/20');
+                    card.classList.add('border-stone-200', 'bg-white');
+                });
+
+                const selectedCard = document.getElementById('payment-card-' + method);
+                if (selectedCard) {
+                    selectedCard.classList.remove('border-stone-200', 'bg-white');
+                    selectedCard.classList.add('border-red-500', 'bg-red-50/50', 'ring-2', 'ring-red-500/20');
+                    const radio = selectedCard.querySelector('input[type="radio"]');
+                    if (radio) radio.checked = true;
+                }
+            }
+        </script>
     @endif
 </div>
 @endsection

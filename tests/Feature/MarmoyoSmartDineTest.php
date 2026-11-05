@@ -1071,4 +1071,41 @@ class MarmoyoSmartDineTest extends TestCase
         $this->assertEquals('success', $valPayment->status);
         $this->assertEquals(5000, $valPayment->cash_change);
     }
+
+    public function test_checkout_requires_payment_method_selection(): void
+    {
+        $table = RestaurantTable::first();
+        $menu = Menu::first();
+
+        // Put an item in cart
+        $cart = [
+            'item_1' => [
+                'menu_id' => $menu->id,
+                'quantity' => 1,
+            ]
+        ];
+
+        // 1. Submit without choosing payment method: should fail validation
+        $response = $this->withSession([
+            'table_id' => $table->id,
+            'table_number' => $table->table_number,
+            'cart' => $cart,
+        ])->post(route('customer.checkout'), [
+            // no payment_method provided
+        ]);
+
+        $response->assertSessionHasErrors(['payment_method']);
+
+        // 2. Submit with valid choice (QRIS): succeeds
+        $successResponse = $this->withSession([
+            'table_id' => $table->id,
+            'table_number' => $table->table_number,
+            'cart' => $cart,
+        ])->post(route('customer.checkout'), [
+            'payment_method' => 'qris',
+        ]);
+
+        $successResponse->assertStatus(302);
+        $this->assertTrue(str_contains($successResponse->headers->get('Location'), '/payment/MRM-'));
+    }
 }
