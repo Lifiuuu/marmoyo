@@ -56,6 +56,7 @@ Route::prefix('cashier')->middleware(['auth'])->group(function () {
     Route::get('/live-orders/feed', [CashierController::class, 'liveOrdersFeed'])->name('cashier.live-orders.feed');
     Route::get('/take-away', [CashierController::class, 'takeAwayCreate'])->name('cashier.take-away.create');
     Route::post('/take-away', [CashierController::class, 'takeAwayStore'])->name('cashier.take-away.store');
+    Route::get('/lookup-payment', [CashierController::class, 'lookupPayment'])->name('cashier.lookup-payment');
     Route::post('/validate-cash', [CashierController::class, 'validateCash'])->name('cashier.validate-cash');
     Route::post('/order/{id}/status', [CashierController::class, 'updateStatus'])->name('cashier.order.status');
     Route::get('/menus', [CashierController::class, 'menuStock'])->name('cashier.menus.index');

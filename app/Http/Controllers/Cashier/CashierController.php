@@ -165,6 +165,70 @@ class CashierController extends Controller
     }
 
     /**
+     * Live Ajax lookup for Cash Validation Modal.
+     * Matches payment_code, order_number, table_number, or scanned QR URL.
+     */
+    public function lookupPayment(Request $request)
+    {
+        $rawQuery = trim($request->query('query', ''));
+        if (empty($rawQuery)) {
+            return response()->json(['found' => false]);
+        }
+
+        // Clean query: extract code from URL if scanned from full URL
+        $query = strtoupper($rawQuery);
+        if (str_contains($query, 'TABLE=')) {
+            parse_str(parse_url($rawQuery, PHP_URL_QUERY) ?? '', $urlParams);
+            if (!empty($urlParams['table'])) {
+                $query = 'MEJA ' . $urlParams['table'];
+            }
+        } elseif (str_contains($query, '/PAYMENT/')) {
+            $parts = explode('/payment/', $rawQuery);
+            if (!empty($parts[1])) {
+                $query = explode('?', explode('/', $parts[1])[0])[0];
+            }
+        }
+
+        // Try exact/partial matching on payment_code, order_number, or table_number
+        $order = Order::with(['table', 'payment', 'items'])
+            ->where('payment_status', 'unpaid')
+            ->where(function ($q) use ($query) {
+                $q->whereHas('payment', function ($pq) use ($query) {
+                    $pq->where('payment_code', 'like', "%{$query}%");
+                })
+                ->orWhere('order_number', 'like', "%{$query}%")
+                ->orWhere(function ($oq) use ($query) {
+                    $tableDigits = preg_replace('/[^0-9]/', '', $query);
+                    if (!empty($tableDigits)) {
+                        $oq->whereHas('table', function ($tq) use ($tableDigits) {
+                            $tq->where('table_number', sprintf('%02d', (int) $tableDigits))
+                               ->orWhere('table_number', (string) (int) $tableDigits);
+                        });
+                    }
+                });
+            })
+            ->latest()
+            ->first();
+
+        if (!$order) {
+            return response()->json(['found' => false]);
+        }
+
+        $paymentCode = $order->payment->payment_code ?? ('TUNAI-' . str_replace('MRM-', '', $order->order_number));
+
+        return response()->json([
+            'found' => true,
+            'payment_code' => $paymentCode,
+            'order_number' => $order->order_number,
+            'table_number' => $order->isTakeAway() ? 'Take Away' : 'Meja ' . ($order->table->table_number ?? '-'),
+            'customer_name' => $order->customer_name ?: 'Pelanggan',
+            'amount' => (float) $order->final_amount,
+            'amount_formatted' => 'Rp ' . number_format($order->final_amount, 0, ',', '.'),
+            'items_summary' => $order->items->pluck('menu_name')->implode(', '),
+        ]);
+    }
+
+    /**
      * Cash Validation from Modal (Page 30 SRS).
      */
     public function validateCash(Request $request)

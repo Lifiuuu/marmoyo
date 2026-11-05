@@ -1021,4 +1021,54 @@ class MarmoyoSmartDineTest extends TestCase
         $completedCount = $response->viewData('completedOrdersCount');
         $this->assertGreaterThanOrEqual(2, $completedCount);
     }
+
+    public function test_cashier_lookup_payment_by_code_order_and_table(): void
+    {
+        $cashier = User::where('role', 'kasir')->first();
+        $table = RestaurantTable::where('table_number', '08')->first() ?? RestaurantTable::first();
+
+        $order = Order::create([
+            'order_number' => 'MRM-08999',
+            'table_id' => $table->id,
+            'customer_name' => 'Pelanggan Meja ' . $table->table_number,
+            'subtotal' => 35000,
+            'final_amount' => 35000,
+            'status' => 'menunggu',
+            'payment_status' => 'unpaid',
+            'payment_method' => 'cash',
+        ]);
+
+        $payment = \App\Models\Payment::create([
+            'order_id' => $order->id,
+            'payment_code' => 'TUNAI-08999',
+            'method' => 'cash',
+            'amount' => 35000,
+            'status' => 'pending',
+        ]);
+
+        // 1. Lookup by payment code
+        $resp1 = $this->actingAs($cashier)->getJson(route('cashier.lookup-payment', ['query' => 'TUNAI-08999']));
+        $resp1->assertStatus(200);
+        $resp1->assertJson([
+            'found' => true,
+            'payment_code' => 'TUNAI-08999',
+            'amount' => 35000,
+        ]);
+
+        // 2. Lookup by order number
+        $resp2 = $this->actingAs($cashier)->getJson(route('cashier.lookup-payment', ['query' => 'MRM-08999']));
+        $resp2->assertStatus(200);
+        $resp2->assertJson(['found' => true, 'amount' => 35000]);
+
+        // 3. Lookup by scanned table QR URL: http://.../scan?table=08&token=...
+        $resp3 = $this->actingAs($cashier)->getJson(route('cashier.lookup-payment', ['query' => "http://127.0.0.1:8000/scan?table={$table->table_number}&token=xyz"]));
+        $resp3->assertStatus(200);
+        $resp3->assertJson(['found' => true, 'amount' => 35000]);
+
+        // 4. Validate payment using table number directly
+        $action = app(\App\Actions\Payment\ValidateCashPaymentAction::class);
+        $valPayment = $action->execute('MEJA ' . $table->table_number, 40000, $cashier->id);
+        $this->assertEquals('success', $valPayment->status);
+        $this->assertEquals(5000, $valPayment->cash_change);
+    }
 }
