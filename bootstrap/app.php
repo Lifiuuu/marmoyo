@@ -19,7 +19,19 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
 // Ensure storage is mapped to writable /tmp on serverless environments (Vercel)
 if (isset($_ENV['VERCEL']) || isset($_SERVER['VERCEL']) || env('VERCEL')) {
-    $app->useStoragePath('/tmp/storage');
+    $storage = PHP_OS_FAMILY === 'Windows' ? (sys_get_temp_dir() . '/marmoyo_storage') : '/tmp/storage';
+    foreach ([
+        $storage . '/framework/views',
+        $storage . '/framework/cache',
+        $storage . '/framework/sessions',
+        $storage . '/logs',
+        $storage . '/app',
+    ] as $dir) {
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+    }
+    $app->useStoragePath($storage);
 }
 
 return $app;

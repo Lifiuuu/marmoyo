@@ -1,6 +1,7 @@
 {
   "version": 2,
   "framework": null,
+  "regions": ["sin1"],
   "buildCommand": "npm run build",
   "outputDirectory": "public",
   "functions": {
@@ -14,7 +15,8 @@
     "APP_PACKAGES_CACHE": "/tmp/storage/framework/cache/packages.php",
     "APP_ROUTES_CACHE": "/tmp/storage/framework/cache/routes.php",
     "APP_SERVICES_CACHE": "/tmp/storage/framework/cache/services.php",
-    "VIEW_COMPILED_PATH": "/tmp/storage/framework/views"
+    "VIEW_COMPILED_PATH": "/tmp/storage/framework/views",
+    "LOG_CHANNEL": "stderr"
   },
   "routes": [
     {
