@@ -93,7 +93,7 @@ class AiMenuRecommendationService
             ->whereNotIn('menu_id', $cartMenuIds)
             ->select('menu_id', DB::raw('COUNT(DISTINCT order_id) as shared_baskets'), DB::raw('SUM(quantity) as total_units'))
             ->groupBy('menu_id')
-            ->having('shared_baskets', '>=', 1)
+            ->havingRaw('COUNT(DISTINCT order_id) >= 1')
             ->orderByDesc('shared_baskets')
             ->orderByDesc('total_units')
             ->take(2)
