@@ -26,11 +26,50 @@ class ValidateCashPaymentAction
     public function execute(string $paymentCode, float $cashReceived, int $cashierId): Payment
     {
         return DB::transaction(function () use ($paymentCode, $cashReceived, $cashierId) {
-            $payment = Payment::with('order.table')->where('payment_code', $paymentCode)->lockForUpdate()->first();
+            $code = strtoupper(trim($paymentCode));
+
+            // Clean query: extract code from URL if scanned from full URL
+            if (str_contains($code, 'TABLE=')) {
+                parse_str(parse_url($paymentCode, PHP_URL_QUERY) ?? '', $urlParams);
+                if (!empty($urlParams['table'])) {
+                    $code = 'MEJA ' . $urlParams['table'];
+                }
+            } elseif (str_contains($code, '/PAYMENT/')) {
+                $parts = explode('/payment/', $paymentCode);
+                if (!empty($parts[1])) {
+                    $code = explode('?', explode('/', $parts[1])[0])[0];
+                }
+            }
+
+            $payment = Payment::with('order.table')
+                ->where('payment_code', $code)
+                ->orWhereHas('order', function ($q) use ($code) {
+                    $q->where('order_number', $code);
+                })
+                ->lockForUpdate()
+                ->first();
+
+            // If not found, check if it's a table number with an active unpaid order (e.g. "08" or "Meja 08")
+            if (!$payment) {
+                $tableDigits = preg_replace('/[^0-9]/', '', $code);
+                if (!empty($tableDigits)) {
+                    $order = Order::with('payment')
+                        ->where('payment_status', 'unpaid')
+                        ->whereHas('table', function ($tq) use ($tableDigits) {
+                            $tq->where('table_number', sprintf('%02d', (int) $tableDigits))
+                               ->orWhere('table_number', (string) (int) $tableDigits);
+                        })
+                        ->latest()
+                        ->first();
+                    if ($order && $order->payment) {
+                        $payment = $order->payment;
+                    }
+                }
+            }
 
             if (!$payment) {
                 throw ValidationException::withMessages([
-                    'payment_code' => "Kode pembayaran '{$paymentCode}' tidak ditemukan.",
+                    'payment_code' => "Kode pembayaran atau pesanan '{$paymentCode}' tidak ditemukan atau sudah diproses.",
                 ]);
             }
 
