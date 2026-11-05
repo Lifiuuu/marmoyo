@@ -230,9 +230,17 @@ class CustomerOrderController extends Controller
             return redirect()->route('customer.menu')->with('error', 'Keranjang belanja Anda masih kosong.');
         }
 
-        $paymentMethod = $request->input('payment_method', 'qris'); // 'qris' or 'cash'
+        $validated = $request->validate([
+            'payment_method' => 'required|in:qris,cash',
+            'kitchen_notes' => 'nullable|string|max:255',
+        ], [
+            'payment_method.required' => 'Silakan pilih metode pembayaran (QRIS Instan atau Tunai di Kasir) terlebih dahulu.',
+            'payment_method.in' => 'Metode pembayaran yang dipilih tidak valid.',
+        ]);
+
+        $paymentMethod = $validated['payment_method'];
         $promoCode = Session::get('applied_promo', 'MAKANHEMAT');
-        $kitchenNotes = $request->input('kitchen_notes');
+        $kitchenNotes = $validated['kitchen_notes'] ?? null;
 
         // Execute Order creation
         $order = $this->createOrderAction->execute([
