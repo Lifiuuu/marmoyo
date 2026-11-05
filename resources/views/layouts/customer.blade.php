@@ -20,7 +20,7 @@
         <!-- Sticky Header -->
         <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-stone-200 px-3.5 sm:px-6 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-2">
-                <a href="{{ route('customer.menu') }}" class="flex items-center space-x-2">
+                <a href="{{ session('table_number') ? route('customer.menu') : '#' }}" class="flex items-center space-x-2">
                     <span class="w-8 h-8 rounded-full bg-red-600 text-white font-extrabold flex items-center justify-center text-sm shadow-md shrink-0">M</span>
                     <div>
                         <h1 class="text-xs sm:text-sm font-extrabold text-stone-900 leading-tight">Marmoyo Smart-Dine</h1>

@@ -38,11 +38,11 @@
 
 ## 5. Antarmuka POS Kasir & Live Order Board
 
-- [x] 5.1 Buat antarmuka Live Order Queue di kasir dengan pembagian kolom status (Pesanan Masuk, Sedang Dimasak, Siap Saji) dan counter omzet
+- [x] 5.1 Buat antarmuka Live Order Queue di kasir dengan status terpusat (Menunggu vs Selesai) dan counter omzet
 - [x] 5.2 Buat modal scan / input manual kode antrean transaksi `TUNAI-xxxx`
 - [x] 5.3 Implementasi panel pembayaran kasir dengan kalkulator kembalian otomatis dan tombol nominal cepat (Uang Pas, Rp20.000, Rp50.000, Rp100.000)
 - [x] 5.4 Buat aksi konfirmasi pembayaran tunai yang secara instan meneruskan pesanan ke antrean dapur dan memicu cetak struk
-- [x] 5.5 Buat fitur pembaruan status pengerjaan pesanan (*cooking* -> *ready* -> *served*) serta penanganan notifikasi panggilan meja
+- [x] 5.5 Buat fitur pembaruan status pengerjaan pesanan (*menunggu* -> *selesai*) serta penanganan notifikasi panggilan meja
 - [x] 5.6 Buat utilitas pratinjau dan cetak tiket dapur thermal ESC/POS
 
 ## 6. Antarmuka Admin & Owner Executive Dashboard

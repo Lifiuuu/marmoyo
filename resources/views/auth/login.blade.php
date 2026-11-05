@@ -10,8 +10,8 @@
     <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-stone-900 min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-md w-full bg-white rounded-3xl p-8 shadow-2xl space-y-6">
+<body class="bg-stone-900 min-h-screen flex items-center justify-center p-3.5 sm:p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl space-y-5 sm:space-y-6">
         <!-- Logo -->
         <div class="text-center space-y-2">
             <span class="w-12 h-12 rounded-2xl bg-red-600 text-white font-black text-xl inline-flex items-center justify-center shadow-lg">M</span>

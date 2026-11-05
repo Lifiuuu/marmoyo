@@ -20,7 +20,7 @@ return new class extends Migration
             $table->decimal('service_fee', 12, 2)->default(0);
             $table->decimal('packaging_fee', 12, 2)->default(0);
             $table->decimal('final_amount', 12, 2)->default(0);
-            $table->string('status')->default('pending_payment'); // pending_payment, cooking, ready, completed, cancelled
+            $table->string('status')->default('menunggu'); // menunggu, selesai, cancelled
             $table->string('payment_status')->default('unpaid'); // unpaid, paid, expired, refunded
             $table->string('payment_method')->nullable(); // qris, cash
             $table->foreignId('cashier_id')->nullable()->constrained('users')->nullOnDelete();

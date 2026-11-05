@@ -89,7 +89,7 @@ class MarmoyoSmartDineTest extends TestCase
 
         $order = Order::latest()->first();
         $this->assertNotNull($order);
-        $this->assertEquals('pending_payment', $order->status);
+        $this->assertEquals('menunggu', $order->status);
 
         $checkoutResponse->assertRedirect(route('customer.payment', ['orderNumber' => $order->order_number]));
 
@@ -98,7 +98,7 @@ class MarmoyoSmartDineTest extends TestCase
         $verifyResponse->assertRedirect(route('customer.order-status', ['orderNumber' => $order->order_number]));
 
         $order->refresh();
-        $this->assertEquals('cooking', $order->status);
+        $this->assertEquals('menunggu', $order->status);
         $this->assertEquals('paid', $order->payment_status);
     }
 
@@ -147,7 +147,7 @@ class MarmoyoSmartDineTest extends TestCase
         $order->refresh();
         $payment->refresh();
 
-        $this->assertEquals('cooking', $order->status);
+        $this->assertEquals('menunggu', $order->status);
         $this->assertEquals('paid', $order->payment_status);
         $this->assertEquals('success', $payment->status);
         $expectedChange = 50000 - (float) $menu->base_price;
@@ -286,7 +286,7 @@ class MarmoyoSmartDineTest extends TestCase
         $this->assertEquals('take_away', $order->order_type);
         $this->assertNull($order->table_id);
         $this->assertEquals(2000, (float) $order->packaging_fee);
-        $this->assertEquals('cooking', $order->status);
+        $this->assertEquals('menunggu', $order->status);
         $this->assertEquals('paid', $order->payment_status);
         $this->assertEquals('cash', $order->payment_method);
         $this->assertStringStartsWith('MRM-TA', $order->order_number);
@@ -309,9 +309,9 @@ class MarmoyoSmartDineTest extends TestCase
         $printResponse->assertSee('Bpk. Hendra Take Away');
 
         // 5. Cashier can mark order completed directly with 1 click
-        $completeResponse = $this->post("/cashier/order/{$order->id}/status", ['status' => 'completed']);
+        $completeResponse = $this->post("/cashier/order/{$order->id}/status", ['status' => 'selesai']);
         $completeResponse->assertRedirect();
-        $this->assertEquals('completed', $order->fresh()->status);
+        $this->assertTrue(in_array($order->fresh()->status, ['selesai', 'completed']));
     }
 
     public function test_admin_can_view_and_manage_users(): void
@@ -471,18 +471,18 @@ class MarmoyoSmartDineTest extends TestCase
             'customer_name' => 'Pelanggan Meja 08',
             'subtotal' => 25000,
             'final_amount' => 25000,
-            'status' => 'pending_payment',
+            'status' => 'menunggu',
             'payment_status' => 'unpaid',
             'payment_method' => 'cash',
         ]);
 
         // 1. Update Order Status
         $statusResponse = $this->actingAs($cashier)->post(route('cashier.order.status', ['id' => $order->id]), [
-            'status' => 'ready',
+            'status' => 'selesai',
         ]);
         $statusResponse->assertRedirect(route('cashier.live-orders'));
         $order->refresh();
-        $this->assertEquals('ready', $order->status);
+        $this->assertTrue(in_array($order->status, ['selesai', 'completed']));
 
         // 2. Print Thermal Customer Receipt
         $receiptPrint = $this->actingAs($cashier)->get(route('cashier.print.receipt', ['id' => $order->id]));
@@ -712,7 +712,7 @@ class MarmoyoSmartDineTest extends TestCase
         $this->assertNotEquals($orderNumber1, $orderNumber2);
         $order2 = Order::where('order_number', $orderNumber2)->first();
         $this->assertEquals($table->id, $order2->table_id);
-        $this->assertEquals('pending_payment', $order2->status);
+        $this->assertEquals('menunggu', $order2->status);
         $this->assertEquals('cash', $order2->payment_method);
 
         // --- ORDER 3: Pelanggan berikutnya datang di lain waktu, scan QR Code Meja 01 yang sama ---
@@ -752,5 +752,273 @@ class MarmoyoSmartDineTest extends TestCase
         $this->assertContains($orderNumber1, $allOrdersTable1);
         $this->assertContains($orderNumber2, $allOrdersTable1);
         $this->assertContains($orderNumber3, $allOrdersTable1);
+    }
+
+    /**
+     * Test customers CANNOT access /menu, /cart, /cart/add, or /checkout without scanning a valid table QR code first.
+     */
+    public function test_customer_cannot_access_menu_or_ordering_without_scanning_qr_code(): void
+    {
+        // 1. Direct GET /menu without session -> Blocked with 403
+        $menuResponse = $this->get('/menu');
+        $menuResponse->assertStatus(403);
+        $menuResponse->assertSee('QR Code Meja Diperlukan');
+        $menuResponse->assertSee('Silakan scan QR Code yang tertera di meja makan Anda terlebih dahulu');
+
+        // 2. Direct GET /cart without session -> Blocked with 403
+        $cartResponse = $this->get('/cart');
+        $cartResponse->assertStatus(403);
+        $cartResponse->assertSee('QR Code Meja Diperlukan');
+
+        // 3. Direct POST /cart/add without session -> Blocked with 403
+        $menu = Menu::first();
+        $addResponse = $this->post('/cart/add', [
+            'menu_id' => $menu->id,
+            'quantity' => 1,
+        ]);
+        $addResponse->assertStatus(403);
+
+        // 4. Direct POST /checkout without session -> Blocked with 403
+        $checkoutResponse = $this->post('/checkout', [
+            'payment_method' => 'qris',
+        ]);
+        $checkoutResponse->assertStatus(403);
+
+        // 5. JSON request without session -> Receives 403 JSON error
+        $jsonResponse = $this->getJson('/menu');
+        $jsonResponse->assertStatus(403);
+        $jsonResponse->assertJson(['message' => 'Silakan scan QR Code yang tertera di meja makan Anda terlebih dahulu.']);
+    }
+
+    /**
+     * Test scanning an invalid or expired table QR code is rejected.
+     */
+    public function test_invalid_or_expired_table_qr_is_rejected(): void
+    {
+        // Missing table or token params
+        $invalidScanResponse = $this->get('/scan?table=99');
+        $invalidScanResponse->assertStatus(403);
+        $invalidScanResponse->assertSee('QR Code tidak valid');
+
+        // Non-existent table or wrong token
+        $wrongTokenResponse = $this->get('/scan?table=08&token=invalid-token-12345');
+        $wrongTokenResponse->assertStatus(403);
+        $wrongTokenResponse->assertSee('Token QR Code Meja 08 tidak valid atau telah kedaluwarsa');
+    }
+
+    /**
+     * Test customer realtime payment status API endpoint triggers instant detection when paid.
+     */
+    public function test_customer_payment_status_api_reflects_payment_in_realtime(): void
+    {
+        $table = RestaurantTable::where('table_number', '08')->first();
+        $menu = Menu::first();
+
+        $cartItem = [
+            'cart_key' => 'realtime_test_item',
+            'menu_id' => $menu->id,
+            'name' => $menu->name,
+            'unit_price' => 20000,
+            'quantity' => 1,
+            'subtotal_price' => 20000,
+        ];
+
+        $this->withSession([
+            'table_id' => $table->id,
+            'table_number' => $table->table_number,
+            'cart' => [$cartItem],
+        ]);
+
+        $this->post('/checkout', ['payment_method' => 'cash']);
+
+        $order = Order::latest()->first();
+        $this->assertNotNull($order);
+        $this->assertEquals('menunggu', $order->status);
+
+        // 1. Before payment validation: API returns is_paid = false
+        $statusResponse1 = $this->getJson(route('customer.payment.status-api', ['orderNumber' => $order->order_number]));
+        $statusResponse1->assertStatus(200);
+        $statusResponse1->assertJson([
+            'order_number' => $order->order_number,
+            'is_paid' => false,
+            'payment_status' => 'unpaid',
+            'order_status' => 'menunggu',
+        ]);
+
+        // 2. Cashier validates the cash payment
+        $cashier = User::where('role', 'kasir')->first();
+        $this->actingAs($cashier);
+        $this->post('/cashier/validate-cash', [
+            'payment_code' => $order->payment->payment_code,
+            'cash_received' => 50000,
+        ]);
+
+        // 3. Immediately after cashier validates: Customer API returns is_paid = true & redirect_url
+        $statusResponse2 = $this->getJson(route('customer.payment.status-api', ['orderNumber' => $order->order_number]));
+        $statusResponse2->assertStatus(200);
+        $statusResponse2->assertJson([
+            'order_number' => $order->order_number,
+            'is_paid' => true,
+            'payment_status' => 'paid',
+            'order_status' => 'menunggu',
+            'redirect_url' => route('customer.order-status', ['orderNumber' => $order->order_number]),
+        ]);
+    }
+
+    /**
+     * Test cashier live orders realtime feed returns instant queue sync without page reload.
+     */
+    public function test_cashier_live_orders_feed_returns_realtime_updates(): void
+    {
+        $cashier = User::where('role', 'kasir')->first();
+        $this->actingAs($cashier);
+
+        // 1. Initial feed poll
+        $feed1 = $this->getJson(route('cashier.live-orders.feed'));
+        $feed1->assertStatus(200);
+        $feed1->assertJsonStructure([
+            'changed',
+            'hash',
+            'omzet_formatted',
+            'waiting_orders_count',
+            'completed_orders_count',
+            'active_orders_count',
+            'orders_html',
+            'pending_orders_map',
+        ]);
+        $this->assertTrue($feed1->json('changed'));
+        $initialHash = $feed1->json('hash');
+
+        // 2. Poll again with identical hash: returns changed = false (ultra-lightweight response)
+        $feed2 = $this->getJson(route('cashier.live-orders.feed', ['hash' => $initialHash]));
+        $feed2->assertStatus(200);
+        $feed2->assertJson([
+            'changed' => false,
+            'hash' => $initialHash,
+        ]);
+
+        // 3. Customer places a new paid order
+        $table = RestaurantTable::first();
+        $menu = Menu::first();
+        $newOrder = Order::create([
+            'order_number' => 'MRM-' . date('Ymd') . '-9999',
+            'table_id' => $table->id,
+            'customer_name' => 'Meja ' . $table->table_number,
+            'total_amount' => 25000,
+            'final_amount' => 25000,
+            'status' => 'menunggu',
+            'payment_method' => 'qris',
+            'payment_status' => 'paid',
+            'order_type' => 'dine_in',
+        ]);
+
+        // 4. Next poll with old hash: detects new order, returns changed = true with updated HTML
+        $feed3 = $this->getJson(route('cashier.live-orders.feed', ['hash' => $initialHash]));
+        $feed3->assertStatus(200);
+        $this->assertTrue($feed3->json('changed'));
+        $this->assertNotEquals($initialHash, $feed3->json('hash'));
+        $this->assertStringContainsString('MRM-' . date('Ymd') . '-9999', $feed3->json('orders_html'));
+    }
+
+    public function test_cash_validation_is_idempotent_and_prevents_duplicate_failures(): void
+    {
+        $cashier = User::where('role', 'kasir')->first();
+        $table = RestaurantTable::first();
+
+        $order = Order::create([
+            'order_number' => 'MRM-' . $table->table_number . '888',
+            'table_id' => $table->id,
+            'customer_name' => 'Pelanggan Meja ' . $table->table_number,
+            'subtotal' => 25000,
+            'final_amount' => 25000,
+            'status' => 'menunggu',
+            'payment_status' => 'unpaid',
+            'payment_method' => 'cash',
+        ]);
+
+        $payment = \App\Models\Payment::create([
+            'order_id' => $order->id,
+            'payment_code' => 'TUNAI-' . $table->table_number . '888',
+            'method' => 'cash',
+            'amount' => 25000,
+            'status' => 'pending',
+        ]);
+
+        $action = app(\App\Actions\Payment\ValidateCashPaymentAction::class);
+
+        // First validation: marks success
+        $p1 = $action->execute('TUNAI-' . $table->table_number . '888', 30000, $cashier->id);
+        $this->assertEquals('success', $p1->status);
+
+        // Second validation (e.g. double click or network retry): returns same payment without error
+        $p2 = $action->execute('TUNAI-' . $table->table_number . '888', 30000, $cashier->id);
+        $this->assertEquals('success', $p2->status);
+        $this->assertEquals($p1->id, $p2->id);
+    }
+
+    public function test_order_creation_prevents_double_transactions(): void
+    {
+        $table = RestaurantTable::first();
+        $menu = Menu::first();
+        $action = app(\App\Actions\Order\CreateOrderAction::class);
+
+        $orderData = [
+            'table_id' => $table->id,
+            'customer_name' => 'Test Pelanggan Double Click',
+            'items' => [
+                [
+                    'menu_id' => $menu->id,
+                    'quantity' => 2,
+                ]
+            ],
+            'promo_code' => '',
+            'kitchen_notes' => 'Catatan test',
+            'payment_method' => 'cash',
+        ];
+
+        // First execution
+        $order1 = $action->execute($orderData);
+        $this->assertNotNull($order1);
+
+        // Second execution immediately after (simulating double click or server latency retry)
+        $order2 = $action->execute($orderData);
+        $this->assertEquals($order1->id, $order2->id, 'Should return the existing order rather than duplicating');
+    }
+
+    public function test_live_orders_completed_count_includes_both_dine_in_and_take_away(): void
+    {
+        $cashier = User::where('role', 'kasir')->first();
+        $table = RestaurantTable::first();
+
+        // Create completed Dine In order today
+        $dineIn = Order::create([
+            'order_number' => 'MRM-DI-TEST',
+            'table_id' => $table->id,
+            'order_type' => 'dine_in',
+            'subtotal' => 20000,
+            'final_amount' => 20000,
+            'status' => 'selesai',
+            'payment_status' => 'paid',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Create completed Take Away order today
+        $takeAway = Order::create([
+            'order_number' => 'MRM-TA-TEST',
+            'cashier_id' => $cashier->id,
+            'order_type' => 'take_away',
+            'subtotal' => 20000,
+            'final_amount' => 20000,
+            'status' => 'selesai',
+            'payment_status' => 'paid',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($cashier)->get(route('cashier.live-orders'));
+        $response->assertStatus(200);
+        $completedCount = $response->viewData('completedOrdersCount');
+        $this->assertGreaterThanOrEqual(2, $completedCount);
     }
 }

@@ -22,7 +22,7 @@ Membangun sistem web fullstack enterprise-grade "Marmoyo Smart-Dine" menggunakan
   - Layar POS & Live Order Queue terpusat untuk memantau pesanan masuk secara real-time.
   - Panel validasi pembayaran tunai kilat: scan barcode / ketik kode `TUNAI-xxxx`, quick button nominal uang diterima, kalkulator kembalian otomatis, dan validasi 1-klik yang otomatis mengubah status serta meneruskan pesanan ke dapur.
   - Dispatch cetak otomatis pesanan ke printer thermal dapur (format ESC/POS Kitchen Ticket) dan cetak struk kasir.
-  - Pembaruan status pesanan real-time ke pelanggan (*cooking* -> *ready* -> *served*).
+  - Pembaruan status pesanan real-time ke pelanggan (*menunggu* -> *selesai*).
 
 - **Pemilik (Admin / Owner)**:
   - Dashboard eksekutif analitik bisnis: metrik omzet harian/mingguan/bulanan, total transaksi, rata-rata rating, rasio pembayaran QRIS vs Tunai.

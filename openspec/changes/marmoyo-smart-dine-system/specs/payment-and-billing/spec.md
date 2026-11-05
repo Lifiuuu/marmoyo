@@ -20,7 +20,7 @@ Sistem SHALL menghasilkan QRIS dinamis unik untuk setiap pesanan dengan batas wa
 ---
 
 ### Requirement: Alur Penerbitan Kode Pembayaran Tunai Kasir
-Sistem SHALL menerbitkan kode antrean pembayaran tunai unik dengan format `TUNAI-xxxx` yang dilengkapi Barcode dan QR Code pada ponsel pelanggan jika metode "Bayar Tunai di Kasir" dipilih. Pesanan MUST tetap berstatus `pending_payment` dan TIDAK boleh diteruskan ke dapur sebelum kasir mengonfirmasi penerimaan uang fisik di sistem POS.
+Sistem SHALL menerbitkan kode antrean pembayaran tunai unik dengan format `TUNAI-xxxx` yang dilengkapi Barcode dan QR Code pada ponsel pelanggan jika metode "Bayar Tunai di Kasir" dipilih. Pesanan MUST berstatus `menunggu` dengan payment status `unpaid` dan TIDAK boleh diteruskan ke antrean aktif live order kasir sebelum kasir mengonfirmasi penerimaan uang fisik di sistem POS.
 
 #### Scenario: Pelanggan memilih metode pembayaran tunai
 - **WHEN** pelanggan memilih opsi "Bayar Tunai di Kasir" pada rincian pesanan Meja 08 senilai Rp22.000

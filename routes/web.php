@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Cashier\CashierController;
 use App\Http\Controllers\Customer\CustomerOrderController;
+use App\Http\Middleware\EnsureTableSession;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -21,13 +22,20 @@ Route::get('/', function () {
 // ==============================
 // 1. Pelanggan (Customer) Self-Ordering Routes
 // ==============================
+// Public entry point: scan QR code at physical dining table
 Route::get('/scan', [CustomerOrderController::class, 'scan'])->name('customer.scan');
-Route::get('/menu', [CustomerOrderController::class, 'menu'])->name('customer.menu');
-Route::get('/cart', [CustomerOrderController::class, 'cart'])->name('customer.cart');
-Route::post('/cart/add', [CustomerOrderController::class, 'addToCart'])->name('customer.cart.add');
-Route::post('/cart/update', [CustomerOrderController::class, 'updateCart'])->name('customer.cart.update');
-Route::post('/checkout', [CustomerOrderController::class, 'checkout'])->name('customer.checkout');
+
+// Protected ordering routes: require scanned table QR code session
+Route::middleware([EnsureTableSession::class])->group(function () {
+    Route::get('/menu', [CustomerOrderController::class, 'menu'])->name('customer.menu');
+    Route::get('/cart', [CustomerOrderController::class, 'cart'])->name('customer.cart');
+    Route::post('/cart/add', [CustomerOrderController::class, 'addToCart'])->name('customer.cart.add');
+    Route::post('/cart/update', [CustomerOrderController::class, 'updateCart'])->name('customer.cart.update');
+    Route::post('/checkout', [CustomerOrderController::class, 'checkout'])->name('customer.checkout');
+});
+
 Route::get('/payment/{orderNumber}', [CustomerOrderController::class, 'payment'])->name('customer.payment');
+Route::get('/payment/{orderNumber}/status', [CustomerOrderController::class, 'paymentStatusApi'])->name('customer.payment.status-api');
 Route::post('/payment/{orderNumber}/verify', [CustomerOrderController::class, 'verifyQris'])->name('customer.verify-qris');
 Route::post('/payment/{orderNumber}/switch', [CustomerOrderController::class, 'switchPaymentMethod'])->name('customer.payment.switch');
 Route::get('/order/{orderNumber}/status', [CustomerOrderController::class, 'orderStatus'])->name('customer.order-status');
@@ -45,6 +53,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // ==============================
 Route::prefix('cashier')->middleware(['auth'])->group(function () {
     Route::get('/live-orders', [CashierController::class, 'liveOrders'])->name('cashier.live-orders');
+    Route::get('/live-orders/feed', [CashierController::class, 'liveOrdersFeed'])->name('cashier.live-orders.feed');
     Route::get('/take-away', [CashierController::class, 'takeAwayCreate'])->name('cashier.take-away.create');
     Route::post('/take-away', [CashierController::class, 'takeAwayStore'])->name('cashier.take-away.store');
     Route::post('/validate-cash', [CashierController::class, 'validateCash'])->name('cashier.validate-cash');

@@ -46,6 +46,18 @@ class CreateTakeAwayOrderAction
             $serviceFee = 0;
             $finalAmount = max(0, $subtotal + $packagingFee - $discountAmount);
 
+            // Idempotency: prevent double take-away order from double clicks or network latency retries
+            $recentTaOrder = Order::where('cashier_id', $cashierId)
+                ->where('order_type', 'take_away')
+                ->where('final_amount', $finalAmount)
+                ->where('created_at', '>=', now()->subSeconds(4))
+                ->latest()
+                ->first();
+
+            if ($recentTaOrder) {
+                return $recentTaOrder;
+            }
+
             // Generate daily sequential take away number: MRM-TA01, MRM-TA02, etc.
             $today = Carbon::today();
             $todayTaCount = Order::whereDate('created_at', $today)
@@ -73,7 +85,7 @@ class CreateTakeAwayOrderAction
                 'service_fee' => $serviceFee,
                 'packaging_fee' => $packagingFee,
                 'final_amount' => $finalAmount,
-                'status' => $isPaidDirectly ? 'cooking' : 'pending_payment',
+                'status' => 'menunggu',
                 'payment_status' => $isPaidDirectly ? 'paid' : 'unpaid',
                 'payment_method' => $paymentMethod,
                 'cashier_id' => $cashierId,

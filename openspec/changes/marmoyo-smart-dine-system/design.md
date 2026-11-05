@@ -27,7 +27,7 @@ graph TD
         F -.->|Pelanggan Tunjukkan Kode| H[Scan Barcode / Input Kode Tunai]
         H --> I[Validasi Tunai + Kalkulator Kembalian]
         I --> J[Kirim Pesanan ke Dapur & Cetak Struk]
-        G <.-.->|Update Status Cooking/Ready/Served| K[Live Order Queue Board]
+        G <.-.->|Update Status Menunggu / Selesai| K[Live Order Queue Board]
     end
 
     subgraph Dapur ["Dapur & Koki"]
@@ -98,8 +98,8 @@ graph TD
 ### 3. Alur Pembayaran Ganda (QRIS vs Tunai) & Pencegahan Kebocoran Kas
 
 - **Pilihan**:
-  1. **QRIS Dinamis**: Sistem men-generate payload QRIS dengan batas waktu kedaluwarsa (misalnya 5 menit). Saat pembayaran terverifikasi via webhook/callback, status pesanan otomatis berubah menjadi `cooking` dan langsung terkirim ke dapur.
-  2. **Tunai di Kasir**: Sistem menerbitkan kode antrean pembayaran berformat `TUNAI-xxxx` lengkap dengan QR/Barcode di layar pelanggan. Pesanan berstatus `pending_payment` dan **TIDAK** dikirim ke dapur sampai kasir memindai/memvalidasi uang fisik di POS.
+  1. **QRIS Dinamis**: Sistem men-generate payload QRIS dengan batas waktu kedaluwarsa (misalnya 5 menit). Saat pembayaran terverifikasi via webhook/callback, status pesanan otomatis berubah menjadi `menunggu` dan langsung terkirim ke dapur.
+  2. **Tunai di Kasir**: Sistem menerbitkan kode antrean pembayaran berformat `TUNAI-xxxx` lengkap dengan QR/Barcode di layar pelanggan. Pesanan berstatus `menunggu` (unpaid) dan **TIDAK** dikirim ke antrean live order sampai kasir memindai/memvalidasi uang fisik di POS.
 - **Alasan**:
   - Menjawab kekhawatiran utama owner (*Wasis*) dan kasir (*Najwa*) mengenai selisih uang fisik dan risiko pesanan palsu (*ghost orders*).
   - Kasir POS dilengkapi kalkulator kembalian instan dengan tombol nominal cepat (Rp20.000, Rp50.000, Rp100.000, Uang Pas) yang memangkas waktu pelayanan kasir dari 10-15 menit menjadi di bawah 15 detik.
@@ -200,7 +200,7 @@ erDiagram
         decimal discount_amount
         decimal tax_amount
         decimal final_amount
-        enum status "pending_payment, cooking, ready, completed, cancelled"
+        enum status "menunggu, selesai, cancelled"
         enum payment_status "unpaid, paid, expired"
         enum payment_method "qris, cash"
         uuid cashier_id FK

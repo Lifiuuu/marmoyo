@@ -46,16 +46,30 @@ class AdminDashboardController extends Controller
         $qrisPercentage = $totalPaid > 0 ? round(($qrisCount / $totalPaid) * 100) : 0;
         $cashPercentage = $totalPaid > 0 ? (100 - $qrisPercentage) : 0;
 
-        // Hourly Sales Trend Data calculated live from database orders
-        $hourlySlots = ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
-        $hourlyData = [];
-        $todayOrders = Order::whereDate('created_at', $today)->get();
-        foreach ($hourlySlots as $slot) {
-            $hour = (int) substr($slot, 0, 2);
-            $hourlyData[$slot] = $todayOrders->filter(function ($order) use ($hour) {
-                return (int) $order->created_at->format('H') === $hour;
-            })->count();
+        // Monthly Sales Trend Data calculated live for the current month
+        $now = Carbon::now();
+        $daysInMonth = $now->daysInMonth;
+        $monthName = $now->translatedFormat('F Y');
+
+        $monthOrders = Order::whereYear('created_at', $now->year)
+            ->whereMonth('created_at', $now->month)
+            ->get();
+
+        $monthlyData = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $dayOrders = $monthOrders->filter(function ($order) use ($day) {
+                return (int) $order->created_at->format('j') === $day;
+            });
+
+            $monthlyData[$day] = [
+                'day' => $day,
+                'count' => $dayOrders->count(),
+                'omzet' => (float) $dayOrders->where('payment_status', 'paid')->sum('final_amount'),
+                'is_today' => $day === (int) $now->format('j'),
+            ];
         }
+
+        $maxMonthCount = max(array_column($monthlyData, 'count')) ?: 1;
 
         // Top Selling Menus calculated live from actual OrderItem sales volume
         $topMenus = Menu::with('category')
@@ -76,7 +90,10 @@ class AdminDashboardController extends Controller
             'averageRating',
             'qrisPercentage',
             'cashPercentage',
-            'hourlyData',
+            'monthlyData',
+            'daysInMonth',
+            'monthName',
+            'maxMonthCount',
             'topMenus',
             'recentOrders'
         ));
@@ -215,7 +232,19 @@ class AdminDashboardController extends Controller
      */
     public function tablesIndex()
     {
-        $tables = RestaurantTable::orderBy('table_number')->get();
+        $tables = RestaurantTable::with(['orders' => function ($query) {
+            $query->where('status', 'menunggu');
+        }])->orderBy('table_number')->get();
+
+        // Automatically sync table status based on whether there are active 'menunggu' orders
+        foreach ($tables as $table) {
+            $expectedStatus = $table->orders->isNotEmpty() ? 'occupied' : 'available';
+            if ($table->status !== $expectedStatus) {
+                $table->update(['status' => $expectedStatus]);
+                $table->status = $expectedStatus;
+            }
+        }
+
         return view('admin.tables.index', compact('tables'));
     }
 
