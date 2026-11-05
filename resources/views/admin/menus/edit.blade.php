@@ -3,16 +3,16 @@
 @section('page-title', 'Edit Menu - ' . $menu->name)
 
 @section('content')
-<div class="max-w-xl mx-auto bg-white border border-stone-200 rounded-3xl p-6 shadow-xs space-y-5">
-    <div class="pb-3 border-b border-stone-100 flex items-center justify-between">
+<div class="max-w-xl mx-auto bg-white border border-stone-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs space-y-4 sm:space-y-5">
+    <div class="pb-2.5 sm:pb-3 border-b border-stone-100 flex items-center justify-between">
         <div>
-            <h3 class="font-extrabold text-stone-900 text-sm">Edit Data Menu</h3>
-            <p class="text-xs text-stone-400">Perbarui informasi harga, kategori, foto, dan ketersediaan menu</p>
+            <h3 class="font-extrabold text-stone-900 text-xs sm:text-sm">Edit Data Menu</h3>
+            <p class="text-[11px] sm:text-xs text-stone-400">Perbarui informasi harga, kategori, foto, dan ketersediaan menu</p>
         </div>
-        <a href="{{ route('admin.menus.index') }}" class="text-xs font-bold text-stone-500 hover:text-stone-800">&larr; Batal & Kembali</a>
+        <a href="{{ route('admin.menus.index') }}" class="text-xs font-bold text-stone-500 hover:text-stone-800 transition">&larr; Batal &amp; Kembali</a>
     </div>
 
-    <form action="{{ route('admin.menus.update', $menu->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
+    <form action="{{ route('admin.menus.update', $menu->id) }}" method="POST" enctype="multipart/form-data" class="space-y-3.5 sm:space-y-4 text-xs">
         @csrf
         @method('PUT')
 
@@ -42,7 +42,7 @@
             <textarea name="description" rows="2" placeholder="Jelaskan aroma rempah, tingkat gurih, dan tekstur menu..." class="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 outline-none focus:border-red-500 resize-none">{{ old('description', $menu->description) }}</textarea>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 p-3 bg-stone-50 rounded-xl border border-stone-200">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-stone-50 rounded-xl border border-stone-200">
             <label class="flex items-center space-x-2 cursor-pointer">
                 <input type="checkbox" name="is_spicy" value="1" {{ $menu->is_spicy ? 'checked' : '' }} class="rounded text-red-600 focus:ring-red-500">
                 <span class="font-bold text-stone-800">Menu Bercita Rasa Pedas 🌶️</span>
@@ -60,7 +60,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-between">
                 <div>
                     <span class="font-bold text-stone-900 flex items-center space-x-1">
@@ -91,7 +91,7 @@
             <label class="block font-bold text-stone-700">Foto Menu (Supabase Storage)</label>
             @if($menu->image_url)
                 <div class="flex items-center space-x-3 pb-2 border-b border-stone-200">
-                    <img src="{{ $menu->image_url }}" alt="{{ $menu->name }}" class="w-16 h-16 rounded-xl object-cover border border-stone-200 shadow-xs">
+                    <img src="{{ $menu->image_url }}" alt="{{ $menu->name }}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-stone-200 shadow-2xs shrink-0">
                     <div>
                         <p class="text-[11px] font-bold text-stone-800">Foto Saat Ini Aktif</p>
                         <span class="text-[10px] text-emerald-700 bg-emerald-100 font-bold px-1.5 py-0.5 rounded">Tersimpan di Supabase Cloud</span>
@@ -105,15 +105,14 @@
             </div>
         </div>
 
-        <div class="pt-2 flex items-center space-x-3">
-            <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl shadow transition">
+        <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+            <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl shadow transition active:scale-95 text-center">
                 Simpan Perubahan Menu ✓
             </button>
-            <a href="{{ route('admin.menus.index') }}" class="px-5 py-3 rounded-xl border border-stone-300 font-bold text-stone-600 hover:bg-stone-100 text-center">
+            <a href="{{ route('admin.menus.index') }}" class="px-5 py-3 rounded-xl border border-stone-300 font-bold text-stone-600 hover:bg-stone-100 text-center transition">
                 Batal
             </a>
         </div>
     </form>
 </div>
 @endsection
-

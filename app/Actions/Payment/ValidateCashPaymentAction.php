@@ -26,7 +26,7 @@ class ValidateCashPaymentAction
     public function execute(string $paymentCode, float $cashReceived, int $cashierId): Payment
     {
         return DB::transaction(function () use ($paymentCode, $cashReceived, $cashierId) {
-            $payment = Payment::with('order.table')->where('payment_code', $paymentCode)->first();
+            $payment = Payment::with('order.table')->where('payment_code', $paymentCode)->lockForUpdate()->first();
 
             if (!$payment) {
                 throw ValidationException::withMessages([
@@ -34,10 +34,9 @@ class ValidateCashPaymentAction
                 ]);
             }
 
+            // Idempotency: if already paid (e.g. from rapid double-click or server retry), return existing successful payment
             if ($payment->isSuccess()) {
-                throw ValidationException::withMessages([
-                    'payment_code' => "Pesanan dengan kode '{$paymentCode}' sudah lunas sebelumnya.",
-                ]);
+                return $payment;
             }
 
             $order = $payment->order;
@@ -59,7 +58,7 @@ class ValidateCashPaymentAction
             ]);
 
             $order->update([
-                'status' => 'cooking', // Automatically dispatched to kitchen
+                'status' => 'menunggu', // Antrean menunggu disajikan
                 'payment_status' => 'paid',
                 'payment_method' => 'cash',
                 'cashier_id' => $cashierId,

@@ -167,6 +167,93 @@
             @endforeach
         </div>
     </div>
+
+    <!-- Realtime Payment Success Modal Overlay -->
+    <div id="payment-success-modal" class="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 text-center max-w-sm w-full shadow-2xl space-y-4 transform transition-all">
+            <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+                <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-base font-extrabold text-stone-900">Pembayaran Berhasil!</h3>
+                <p class="text-xs text-stone-600 mt-1">Pembayaran Anda telah berhasil dikonfirmasi. Mengalihkan ke status pesanan...</p>
+            </div>
+            <div class="w-full bg-stone-100 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-emerald-500 h-1.5 rounded-full animate-pulse w-full"></div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    // Realtime Auto-Detection: Polls payment status with Serverless & Battery-Saver Efficiency
+    (function() {
+        const statusApiUrl = '{{ route("customer.payment.status-api", ["orderNumber" => $order->order_number]) }}';
+        let isRedirecting = false;
+        let isPolling = false;
+        let pollTimer = null;
+        let pollCount = 0;
+        const maxPolls = 150; // Cease polling after ~6 minutes to prevent zombie lambda executions
+
+        const checkPaymentStatus = async () => {
+            if (isRedirecting || isPolling) return;
+            if (pollCount++ > maxPolls) return;
+            isPolling = true;
+
+            try {
+                const response = await fetch(statusApiUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) return;
+                const data = await response.json();
+
+                if (data.is_paid && !isRedirecting) {
+                    isRedirecting = true;
+                    if (pollTimer) clearTimeout(pollTimer);
+
+                    // Show success modal overlay
+                    const modal = document.getElementById('payment-success-modal');
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                    }
+
+                    // Seamless redirect to tracking view
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 1200);
+                    return;
+                }
+            } catch (err) {
+                // Silently continue polling on transient network hiccup
+            } finally {
+                isPolling = false;
+                scheduleNextPoll();
+            }
+        };
+
+        function scheduleNextPoll() {
+            if (isRedirecting) return;
+            if (pollTimer) clearTimeout(pollTimer);
+
+            // Serverless efficiency: slow down interval to 10s when phone is locked / tab in background
+            const interval = document.hidden ? 10000 : 2500;
+            pollTimer = setTimeout(checkPaymentStatus, interval);
+        }
+
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && !isRedirecting) {
+                checkPaymentStatus();
+            }
+        });
+
+        scheduleNextPoll();
+    })();
+</script>
 @endsection
 

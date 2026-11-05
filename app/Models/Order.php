@@ -78,7 +78,17 @@ class Order extends Model
 
     public function isPendingPayment(): bool
     {
-        return $this->status === 'pending_payment';
+        return $this->payment_status === 'unpaid';
+    }
+
+    public function isCompleted(): bool
+    {
+        return in_array($this->status, ['selesai', 'completed']);
+    }
+
+    public function isWaiting(): bool
+    {
+        return $this->status === 'menunggu';
     }
 }
 

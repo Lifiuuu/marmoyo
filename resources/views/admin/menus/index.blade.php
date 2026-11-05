@@ -3,28 +3,81 @@
 @section('page-title', 'Katalog Menu & Kontrol Stok Bahan')
 
 @section('content')
-<div class="space-y-6">
-    <div class="flex items-center justify-between pb-3 border-b border-stone-200">
+<div class="space-y-4 sm:space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-200">
         <div>
-            <h3 class="text-sm font-extrabold text-stone-900">Katalog Menu & AI Smart Upsell</h3>
-            <p class="text-xs text-stone-500">Kelola menu, harga, tingkat kepedasan, dan sakelar ketersediaan stok</p>
+            <h3 class="text-xs sm:text-sm font-extrabold text-stone-900">Katalog Menu &amp; AI Smart Upsell</h3>
+            <p class="text-[11px] sm:text-xs text-stone-500">Kelola menu, harga, tingkat kepedasan, dan sakelar ketersediaan stok</p>
         </div>
-        <a href="{{ route('admin.menus.create') }}" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition flex items-center space-x-1.5">
+        <a href="{{ route('admin.menus.create') }}" class="self-start sm:self-auto bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow transition flex items-center space-x-1.5 active:scale-95">
             <span>+ Tambah Menu Baru</span>
         </a>
     </div>
 
     @foreach($categories as $category)
-        <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs space-y-4">
+        <div class="bg-white border border-stone-200 rounded-2xl p-3.5 sm:p-5 shadow-xs space-y-3 sm:space-y-4">
             <div class="flex items-center justify-between border-b border-stone-100 pb-2.5">
                 <div class="flex items-center space-x-2">
-                    <span class="text-lg">{{ $category->icon }}</span>
-                    <h4 class="text-sm font-extrabold text-stone-900">{{ $category->name }}</h4>
-                    <span class="text-xs bg-stone-100 text-stone-600 font-bold px-2 py-0.5 rounded-full">{{ $category->menus->count() }} Menu</span>
+                    <span class="text-base sm:text-lg">{{ $category->icon }}</span>
+                    <h4 class="text-xs sm:text-sm font-extrabold text-stone-900">{{ $category->name }}</h4>
+                    <span class="text-[10px] sm:text-xs bg-stone-100 text-stone-600 font-bold px-2 py-0.5 rounded-full">{{ $category->menus->count() }} Menu</span>
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
+            <!-- Mobile Card Layout (< 640px) -->
+            <div class="grid grid-cols-1 gap-2.5 sm:hidden">
+                @forelse($category->menus as $menu)
+                    <div class="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2.5">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center space-x-2.5 min-w-0">
+                                <img src="{{ $menu->image_url ?? 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=100' }}" alt="{{ $menu->name }}" class="w-12 h-12 rounded-lg object-cover border border-stone-200 shrink-0">
+                                <div class="min-w-0">
+                                    <p class="font-bold text-stone-900 text-xs truncate">{{ $menu->name }}</p>
+                                    <p class="font-black text-red-600 text-xs">Rp{{ number_format($menu->base_price, 0, ',', '.') }}</p>
+                                    <div class="flex items-center space-x-1 mt-0.5">
+                                        @if($menu->is_spicy)
+                                            <span class="text-[9px] bg-red-50 text-red-700 font-bold px-1.5 py-0.5 rounded">🌶️ Lv.{{ $menu->default_spiciness_level }}</span>
+                                        @endif
+                                        @if($menu->is_bestseller)
+                                            <span class="text-[8px] bg-amber-100 text-amber-800 font-bold px-1 rounded uppercase">Bestseller</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions & Toggle on Mobile -->
+                        <div class="pt-2 border-t border-stone-200/80 flex items-center justify-between gap-2">
+                            <form action="{{ route('admin.menus.toggle-stock', $menu->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-extrabold transition {{ $menu->is_available ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-rose-100 text-rose-800 hover:bg-rose-200' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $menu->is_available ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
+                                    <span>{{ $menu->is_available ? 'Tersedia' : 'Habis' }}</span>
+                                </button>
+                            </form>
+
+                            <div class="flex items-center space-x-1.5">
+                                <a href="{{ route('admin.menus.edit', $menu->id) }}" class="inline-flex items-center space-x-1 bg-white border border-stone-200 text-stone-700 font-bold text-[11px] px-2.5 py-1.5 rounded-lg hover:bg-stone-100 transition shadow-2xs">
+                                    <span>Edit</span>
+                                </a>
+
+                                <form action="{{ route('admin.menus.destroy', $menu->id) }}" method="POST" onsubmit="return confirm('Hapus menu ini dari katalog?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="inline-flex items-center text-rose-600 font-bold text-[11px] px-2 py-1.5 rounded-lg hover:bg-rose-50 transition">
+                                        Hapus
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="py-4 text-center text-stone-400 text-xs">Belum ada menu di kategori ini.</div>
+                @endforelse
+            </div>
+
+            <!-- Desktop & Tablet Table View (>= 640px) -->
+            <div class="hidden sm:block overflow-x-auto">
                 <table class="w-full text-left text-xs">
                     <thead>
                         <tr class="border-b border-stone-100 text-stone-400 uppercase font-semibold">
@@ -40,7 +93,7 @@
                             <tr class="hover:bg-stone-50 transition">
                                 <td class="py-3">
                                     <div class="flex items-center space-x-3">
-                                        <img src="{{ $menu->image_url ?? 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=100' }}" alt="{{ $menu->name }}" class="w-10 h-10 rounded-lg object-cover">
+                                        <img src="{{ $menu->image_url ?? 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=100' }}" alt="{{ $menu->name }}" class="w-10 h-10 rounded-lg object-cover shrink-0">
                                         <div>
                                             <p class="font-bold text-stone-900">{{ $menu->name }}</p>
                                             @if($menu->is_bestseller)
@@ -100,4 +153,3 @@
     @endforeach
 </div>
 @endsection
-

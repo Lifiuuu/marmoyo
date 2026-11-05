@@ -9,19 +9,22 @@
 $storagePath = '/tmp/storage';
 $cachePath = $storagePath . '/framework/cache';
 
-$dirs = [
-    $storagePath . '/framework/views',
-    $cachePath,
-    $cachePath . '/data',
-    $storagePath . '/framework/sessions',
-    $storagePath . '/logs',
-    $storagePath . '/app',
-    $storagePath . '/app/public',
-];
+// Create ephemeral /tmp storage directories only on cold starts to save disk stat calls on warm lambdas
+if (!is_dir($storagePath . '/framework/views')) {
+    $dirs = [
+        $storagePath . '/framework/views',
+        $cachePath,
+        $cachePath . '/data',
+        $storagePath . '/framework/sessions',
+        $storagePath . '/logs',
+        $storagePath . '/app',
+        $storagePath . '/app/public',
+    ];
 
-foreach ($dirs as $dir) {
-    if (!is_dir($dir)) {
-        mkdir($dir, 0755, true);
+    foreach ($dirs as $dir) {
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
     }
 }
 

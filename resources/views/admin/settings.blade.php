@@ -3,12 +3,12 @@
 @section('title', 'Pengaturan Kedai & Struk - Marmoyo Smart-Dine')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-4 sm:space-y-6">
     <!-- Header Section -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h2 class="text-xl font-black text-stone-900">Pengaturan Kedai &amp; Format Struk</h2>
-            <p class="text-xs text-stone-500 mt-1">Kelola identitas kedai yang tercetak di struk kasir thermal, tarif operasional, dan promo diskon.</p>
+            <h2 class="text-base sm:text-xl font-black text-stone-900">Pengaturan Kedai &amp; Format Struk</h2>
+            <p class="text-[11px] sm:text-xs text-stone-500 mt-0.5">Kelola identitas kedai yang tercetak di struk kasir thermal, tarif operasional, dan promo diskon.</p>
         </div>
     </div>
 
@@ -34,21 +34,21 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <!-- Form Settings (Left 7 Cols) -->
-        <div class="lg:col-span-7 space-y-6">
-            <form action="{{ route('admin.settings.update') }}" method="POST" class="space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
+        <!-- Form Settings (Left 7 Cols on Desktop, Full Width on Mobile/Tab) -->
+        <div class="lg:col-span-7 space-y-4 sm:space-y-6">
+            <form action="{{ route('admin.settings.update') }}" method="POST" class="space-y-4 sm:space-y-6">
                 @csrf
                 @method('PUT')
 
                 <!-- Card 1: Identitas Kedai & Struk Header -->
-                <div class="bg-white border border-stone-200 rounded-3xl p-6 shadow-xs space-y-4">
-                    <div class="border-b border-stone-100 pb-3">
-                        <h3 class="font-extrabold text-stone-900 text-sm">Profil Kedai &amp; Kepala Struk</h3>
-                        <p class="text-[11px] text-stone-500">Informasi ini otomatis tercetak di bagian atas kertas thermal setiap transaksi lunas.</p>
+                <div class="bg-white border border-stone-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs space-y-3.5 sm:space-y-4">
+                    <div class="border-b border-stone-100 pb-2.5 sm:pb-3">
+                        <h3 class="font-extrabold text-stone-900 text-xs sm:text-sm">Profil Kedai &amp; Kepala Struk</h3>
+                        <p class="text-[10px] sm:text-[11px] text-stone-500">Informasi ini otomatis tercetak di bagian atas kertas thermal setiap transaksi lunas.</p>
                     </div>
 
-                    <div class="space-y-3.5 text-xs">
+                    <div class="space-y-3 text-xs">
                         <div>
                             <label class="block font-bold text-stone-800 mb-1">Nama Usaha / Kedai *</label>
                             <input type="text" name="store_name" id="inp_store_name" value="{{ old('store_name', $settings->store_name) }}" required class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-stone-900 font-bold focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
@@ -79,21 +79,21 @@
                 </div>
 
                 <!-- Card 2: Tarif Operasional & Promo Diskon -->
-                <div class="bg-white border border-stone-200 rounded-3xl p-6 shadow-xs space-y-4">
-                    <div class="border-b border-stone-100 pb-3">
-                        <h3 class="font-extrabold text-stone-900 text-sm">Tarif Operasional &amp; Promo</h3>
-                        <p class="text-[11px] text-stone-500">Aturan penghitungan biaya otomatis di checkout kasir dan pemesanan meja.</p>
+                <div class="bg-white border border-stone-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs space-y-3.5 sm:space-y-4">
+                    <div class="border-b border-stone-100 pb-2.5 sm:pb-3">
+                        <h3 class="font-extrabold text-stone-900 text-xs sm:text-sm">Tarif Operasional &amp; Promo</h3>
+                        <p class="text-[10px] sm:text-[11px] text-stone-500">Aturan penghitungan biaya otomatis di checkout kasir dan pemesanan meja.</p>
                     </div>
 
-                    <div class="space-y-4 text-xs">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-1">
+                    <div class="space-y-3.5 text-xs">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <div class="p-3 sm:p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-1">
                                 <label class="block font-bold text-stone-800">Biaya Bungkus / Take Away (Rp)</label>
                                 <input type="number" name="packaging_fee" value="{{ old('packaging_fee', round($settings->packaging_fee)) }}" min="0" step="500" class="w-full bg-white border border-stone-200 rounded-xl p-2 font-black text-stone-900">
                                 <span class="text-[10px] text-stone-500 block">Biaya kemasan box food grade &amp; tas</span>
                             </div>
 
-                            <div class="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-1">
+                            <div class="p-3 sm:p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-1">
                                 <label class="block font-bold text-stone-800">Pajak Restoran PB1 (%)</label>
                                 <input type="number" name="tax_pb1_percent" value="{{ old('tax_pb1_percent', round($settings->tax_pb1_percent)) }}" min="0" max="100" class="w-full bg-white border border-stone-200 rounded-xl p-2 font-black text-stone-900">
                                 <span class="text-[10px] text-stone-500 block">Standar pajak daerah resto (10%)</span>
@@ -101,28 +101,28 @@
                         </div>
 
                         <!-- Promo Voucher Makan Hemat -->
-                        <div class="p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200 space-y-3">
+                        <div class="p-3.5 sm:p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200 space-y-2.5 sm:space-y-3">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <span class="font-extrabold text-emerald-950">Promo Diskon "MAKANHEMAT"</span>
+                                    <span class="font-extrabold text-emerald-950 text-xs">Promo Diskon "MAKANHEMAT"</span>
                                     <p class="text-[10px] text-emerald-800">Potongan langsung otomatis saat pelanggan memesan di keranjang</p>
                                 </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
+                                <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-2">
                                     <input type="checkbox" name="promo_active" value="1" {{ old('promo_active', $settings->promo_active) ? 'checked' : '' }} class="sr-only peer">
                                     <div class="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                                 </label>
                             </div>
 
-                            <div class="flex items-center space-x-2 pt-1 border-t border-emerald-200/60">
+                            <div class="flex flex-col sm:flex-row sm:items-center space-y-1.5 sm:space-y-0 sm:space-x-2 pt-2 border-t border-emerald-200/60">
                                 <span class="font-bold text-emerald-900 shrink-0">Nominal Diskon: Rp</span>
-                                <input type="number" name="promo_discount" value="{{ old('promo_discount', round($settings->promo_discount)) }}" min="0" step="500" class="w-36 bg-white border border-emerald-300 rounded-lg px-2.5 py-1.5 font-black text-emerald-950 focus:outline-none">
+                                <input type="number" name="promo_discount" value="{{ old('promo_discount', round($settings->promo_discount)) }}" min="0" step="500" class="w-full sm:w-36 bg-white border border-emerald-300 rounded-xl px-2.5 py-1.5 font-black text-emerald-950 focus:outline-none">
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-end">
-                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs px-6 py-3 rounded-2xl shadow-md active:scale-95 transition flex items-center space-x-2">
+                    <button type="submit" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs px-6 py-3 rounded-2xl shadow-md active:scale-95 transition flex items-center justify-center space-x-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
@@ -132,15 +132,15 @@
             </form>
         </div>
 
-        <!-- Live Thermal Receipt Mockup (Right 5 Cols) -->
-        <div class="lg:col-span-5 space-y-3 sticky top-6">
+        <!-- Live Thermal Receipt Mockup (Right 5 Cols on Desktop, Stacked on Mobile/Tab) -->
+        <div class="lg:col-span-5 space-y-3 lg:sticky lg:top-20 w-full">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-stone-500 uppercase tracking-wider">Live Preview Struk Kasir</span>
                 <span class="text-[10px] font-mono bg-stone-200 text-stone-700 px-2 py-0.5 rounded font-bold">ESC/POS 58mm</span>
             </div>
 
             <!-- Stylized Paper Thermal Receipt -->
-            <div class="bg-white rounded-2xl shadow-xl border border-stone-200 p-6 text-stone-900 font-mono text-[11px] leading-relaxed space-y-2 select-none relative overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-xl border border-stone-200 p-4 sm:p-6 text-stone-900 font-mono text-[11px] leading-relaxed space-y-2 select-none relative overflow-hidden">
                 <!-- Top Serrated Border Effect -->
                 <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-stone-200 via-stone-300 to-stone-200"></div>
 
@@ -257,10 +257,10 @@
     const prevPhone = document.getElementById('prev_phone');
     const prevFooter = document.getElementById('prev_footer');
 
-    inpName.addEventListener('input', () => prevName.textContent = inpName.value || 'MARMOYO SMART-DINE');
-    inpTagline.addEventListener('input', () => prevTagline.textContent = inpTagline.value);
-    inpAddress.addEventListener('input', () => prevAddress.textContent = inpAddress.value);
-    inpPhone.addEventListener('input', () => prevPhone.textContent = 'Telp/WA: ' + inpPhone.value);
-    inpFooter.addEventListener('input', () => prevFooter.textContent = inpFooter.value);
+    if (inpName) inpName.addEventListener('input', () => prevName.textContent = inpName.value || 'MARMOYO SMART-DINE');
+    if (inpTagline) inpTagline.addEventListener('input', () => prevTagline.textContent = inpTagline.value);
+    if (inpAddress) inpAddress.addEventListener('input', () => prevAddress.textContent = inpAddress.value);
+    if (inpPhone) inpPhone.addEventListener('input', () => prevPhone.textContent = 'Telp/WA: ' + inpPhone.value);
+    if (inpFooter) inpFooter.addEventListener('input', () => prevFooter.textContent = inpFooter.value);
 </script>
 @endsection

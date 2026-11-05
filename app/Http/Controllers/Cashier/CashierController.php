@@ -36,30 +36,29 @@ class CashierController extends Controller
 
         // Simplified active workflow: Menunggu vs Selesai
         $waitingOrdersCount = Order::where('payment_status', 'paid')
-            ->whereIn('status', ['menunggu', 'cooking', 'ready'])
+            ->where('status', 'menunggu')
             ->whereDate('created_at', $today)
             ->count();
 
-        $completedOrdersCount = Order::where('status', 'completed')
-            ->whereDate('created_at', $today)
+        $completedOrdersCount = Order::whereIn('status', ['selesai', 'completed'])
+            ->where(function ($query) use ($today) {
+                $query->whereDate('updated_at', $today)
+                    ->orWhereDate('created_at', $today);
+            })
             ->count();
 
         // Active kitchen/serving queue: ONLY paid orders that are waiting to be completed
         $activeOrders = Order::with(['items', 'table', 'payment'])
             ->where('payment_status', 'paid')
-            ->whereIn('status', ['menunggu', 'cooking', 'ready'])
+            ->where('status', 'menunggu')
             ->orderBy('created_at', 'asc')
             ->get();
 
         // Unpaid orders kept in background for Cash Validation modal lookup
         $unpaidOrders = Order::with(['table', 'payment'])
-            ->where('status', 'pending_payment')
+            ->where('payment_status', 'unpaid')
             ->whereDate('created_at', $today)
             ->get();
-
-        $pendingPaymentCount = $unpaidOrders->count();
-        $cookingCount = $waitingOrdersCount;
-        $readyCount = 0;
 
         $pendingOrdersMap = $unpaidOrders->mapWithKeys(function ($order) {
             $code = $order->payment->payment_code ?? ('TUNAI-' . str_replace('MRM-', '', $order->order_number));
@@ -76,12 +75,93 @@ class CashierController extends Controller
             'todayOmzet',
             'waitingOrdersCount',
             'completedOrdersCount',
-            'pendingPaymentCount',
-            'cookingCount',
-            'readyCount',
             'activeOrders',
             'pendingOrdersMap'
         ));
+    }
+
+    /**
+     * Cashier Realtime Live Orders Feed API (Auto-sync without refresh).
+     */
+    public function liveOrdersFeed(Request $request)
+    {
+        $today = Carbon::today();
+
+        // 1. Compute lightweight hash signature
+        $activeSignature = Order::where('payment_status', 'paid')
+            ->where('status', 'menunggu')
+            ->selectRaw('count(*) as count, max(updated_at) as max_updated, sum(final_amount) as total')
+            ->first();
+
+        $unpaidSignature = Order::where('payment_status', 'unpaid')
+            ->whereDate('created_at', $today)
+            ->selectRaw('count(*) as count, max(updated_at) as max_updated')
+            ->first();
+
+        $completedCount = Order::whereIn('status', ['selesai', 'completed'])
+            ->where(function ($query) use ($today) {
+                $query->whereDate('updated_at', $today)
+                    ->orWhereDate('created_at', $today);
+            })
+            ->count();
+
+        $currentHash = md5(json_encode([
+            $activeSignature->count ?? 0,
+            $activeSignature->max_updated ?? '',
+            $activeSignature->total ?? 0,
+            $unpaidSignature->count ?? 0,
+            $unpaidSignature->max_updated ?? '',
+            $completedCount,
+        ]));
+
+        if ($request->query('hash') && $request->query('hash') === $currentHash) {
+            return response()->json([
+                'changed' => false,
+                'hash' => $currentHash,
+            ]);
+        }
+
+        // 2. Metrics & full data if hash differs
+        $todayPaidOrders = Order::whereDate('created_at', $today)->where('payment_status', 'paid');
+        $todayOmzet = (float) $todayPaidOrders->sum('final_amount');
+
+        $waitingOrdersCount = (int) ($activeSignature->count ?? 0);
+        $completedOrdersCount = $completedCount;
+
+        $activeOrders = Order::with(['items', 'table', 'payment'])
+            ->where('payment_status', 'paid')
+            ->where('status', 'menunggu')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $unpaidOrders = Order::with(['table', 'payment'])
+            ->where('payment_status', 'unpaid')
+            ->whereDate('created_at', $today)
+            ->get();
+
+        $pendingOrdersMap = $unpaidOrders->mapWithKeys(function ($order) {
+            $code = $order->payment->payment_code ?? ('TUNAI-' . str_replace('MRM-', '', $order->order_number));
+            return [$code => [
+                'amount' => (float) $order->final_amount,
+                'order_number' => $order->order_number,
+                'table_number' => $order->isTakeAway() ? 'TA' : ($order->table->table_number ?? '00'),
+                'customer_name' => $order->customer_name,
+                'order_type' => $order->order_type ?? 'dine_in',
+            ]];
+        });
+
+        $html = view('cashier.partials.active-orders-grid', compact('activeOrders'))->render();
+
+        return response()->json([
+            'changed' => true,
+            'hash' => $currentHash,
+            'omzet_formatted' => 'Rp' . number_format($todayOmzet, 0, ',', '.'),
+            'waiting_orders_count' => $waitingOrdersCount,
+            'completed_orders_count' => $completedOrdersCount,
+            'active_orders_count' => $activeOrders->count(),
+            'orders_html' => $html,
+            'pending_orders_map' => $pendingOrdersMap,
+        ]);
     }
 
     /**
@@ -152,25 +232,33 @@ class CashierController extends Controller
     }
 
     /**
-     * Advance order status: menunggu -> completed.
+     * Advance order status: menunggu -> selesai.
      */
     public function updateStatus(Request $request, int $id)
     {
         $order = Order::with('table')->findOrFail($id);
-        $newStatus = $request->input('status'); // menunggu, cooking, ready, completed, cancelled
+        $newStatus = $request->input('status'); // menunggu, selesai (also accepts completed, batal, cancelled)
 
-        if (in_array($newStatus, ['menunggu', 'cooking', 'ready', 'completed', 'cancelled'])) {
-            $order->update(['status' => $newStatus]);
+        if (in_array($newStatus, ['menunggu', 'selesai', 'completed', 'batal', 'cancelled'])) {
+            $mappedStatus = in_array($newStatus, ['selesai', 'completed']) ? 'selesai' : $newStatus;
+            $order->update(['status' => $mappedStatus]);
 
-            // If order completed or cancelled, free the table (for dine-in)
-            if (in_array($newStatus, ['completed', 'cancelled'])) {
+            // If order completed/selesai or cancelled/batal, free the table (for dine-in) if no active orders remain
+            if (in_array($mappedStatus, ['selesai', 'completed', 'batal', 'cancelled'])) {
                 if ($order->table_id && $order->table) {
-                    $order->table->update(['status' => 'available']);
+                    $hasActiveOrders = Order::where('table_id', $order->table_id)
+                        ->where('id', '!=', $order->id)
+                        ->where('status', 'menunggu')
+                        ->exists();
+
+                    if (!$hasActiveOrders) {
+                        $order->table->update(['status' => 'available']);
+                    }
                 }
             }
         }
 
-        $statusLabel = $newStatus === 'completed' ? 'SELESAI DISAJIKAN' : strtoupper($newStatus);
+        $statusLabel = in_array($newStatus, ['selesai', 'completed']) ? 'SELESAI DISAJIKAN' : strtoupper($newStatus);
         return redirect()->route('cashier.live-orders')->with('success', "Pesanan #{$order->order_number} berhasil diperbarui: {$statusLabel}");
     }
 

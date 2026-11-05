@@ -79,6 +79,17 @@ class CreateOrderAction
             $serviceFee = 0; // Self-ordering is free of service fee
             $finalAmount = max(0, $subtotal - $discountAmount);
 
+            // Idempotency: prevent duplicate transaction if double clicked or if server retried under latency
+            $recentOrder = Order::where('table_id', $table->id)
+                ->where('final_amount', $finalAmount)
+                ->where('created_at', '>=', now()->subSeconds(4))
+                ->latest()
+                ->first();
+
+            if ($recentOrder) {
+                return $recentOrder;
+            }
+
             // Generate unique Order Number: MRM-{table_number}{random_suffix}
             do {
                 $randomSuffix = rand(100, 999);
@@ -88,7 +99,7 @@ class CreateOrderAction
             // Mark table occupied
             $table->update(['status' => 'occupied']);
 
-            // Create Order
+            // Create Order with simplified status: 'menunggu'
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'table_id' => $table->id,
@@ -98,7 +109,7 @@ class CreateOrderAction
                 'tax_amount' => $taxAmount,
                 'service_fee' => $serviceFee,
                 'final_amount' => $finalAmount,
-                'status' => 'pending_payment',
+                'status' => 'menunggu',
                 'payment_status' => 'unpaid',
                 'payment_method' => $data['payment_method'] ?? 'cash',
                 'kitchen_notes' => $data['kitchen_notes'] ?? null,

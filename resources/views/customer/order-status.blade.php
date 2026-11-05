@@ -19,22 +19,24 @@
             </div>
         </div>
 
-        <!-- Kitchen Status Tracker (Page 28 SRS) -->
+        <!-- Kitchen Status Tracker -->
         <div class="bg-white border border-stone-200 rounded-2xl p-4 shadow-sm space-y-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                    <h4 class="text-xs font-extrabold text-stone-900">Pesanan Dikonfirmasi</h4>
+                    <span id="kitchen-status-dot" class="w-2.5 h-2.5 rounded-full {{ in_array($order->status, ['selesai', 'completed']) ? 'bg-emerald-500' : 'bg-emerald-500 animate-pulse' }}"></span>
+                    <h4 id="kitchen-status-heading" class="text-xs font-extrabold text-stone-900">{{ in_array($order->status, ['selesai', 'completed']) ? 'Pesanan Telah Selesai' : 'Pesanan Dikonfirmasi' }}</h4>
                 </div>
-                <span class="text-[10px] bg-amber-100 text-amber-800 font-black px-2.5 py-0.5 rounded-full uppercase">
-                    {{ in_array($order->status, ['cooking', 'menunggu', 'ready']) ? 'Menunggu Disajikan' : 'Selesai' }}
+                <span id="kitchen-status-badge" class="text-[10px] {{ in_array($order->status, ['selesai', 'completed']) ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }} font-black px-2.5 py-0.5 rounded-full uppercase">
+                    {{ in_array($order->status, ['selesai', 'completed']) ? 'Selesai' : 'Menunggu Disajikan' }}
                 </span>
             </div>
-            <p class="text-[11px] text-stone-500">Pesanan Anda sudah masuk dan sedang disiapkan oleh tim Marmoyo Smart-Dine.</p>
+            <p id="kitchen-status-desc" class="text-[11px] text-stone-500">
+                {{ in_array($order->status, ['selesai', 'completed']) ? 'Pesanan Anda telah selesai disiapkan dan disajikan ke meja Anda. Selamat menikmati!' : 'Pesanan Anda sudah masuk dan sedang disiapkan oleh tim Marmoyo Smart-Dine.' }}
+            </p>
 
             <div class="bg-stone-50 border border-stone-200 rounded-xl p-2.5 flex items-center justify-between text-xs">
                 <span class="text-stone-600 font-bold">Estimasi Penyajian:</span>
-                <span class="font-extrabold text-stone-900">10 - 15 Menit</span>
+                <span id="kitchen-status-eta" class="font-extrabold text-stone-900">{{ in_array($order->status, ['selesai', 'completed']) ? 'Telah Disajikan' : '10 - 15 Menit' }}</span>
             </div>
         </div>
 
@@ -109,5 +111,92 @@
         </a>
     </div>
 </div>
+
+<script>
+    // Realtime Kitchen Tracker: automatically tracks order status without manual refresh
+    (function() {
+        let currentStatus = '{{ $order->status }}';
+        let wasPaid = {{ $order->isPaid() ? 'true' : 'false' }};
+
+        // If order is already completed, do NOT poll to keep Vercel serverless load zero
+        if (currentStatus === 'selesai' || currentStatus === 'completed') {
+            return;
+        }
+
+        const statusApiUrl = '{{ route("customer.payment.status-api", ["orderNumber" => $order->order_number]) }}';
+        let pollTimer = null;
+        let isChecking = false;
+
+        const checkOrderStatus = async () => {
+            if (isChecking) return;
+            isChecking = true;
+
+            try {
+                const response = await fetch(statusApiUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) return;
+                const data = await response.json();
+
+                // If order was unpaid and now paid, reload page to show full success layout
+                if (!wasPaid && data.is_paid) {
+                    window.location.reload();
+                    return;
+                }
+
+                // If status changed to completed, update tracker immediately in-place and stop polling
+                if (data.order_status !== currentStatus) {
+                    currentStatus = data.order_status;
+
+                    if (currentStatus === 'selesai' || currentStatus === 'completed') {
+                        if (pollTimer) clearTimeout(pollTimer);
+
+                        const heading = document.getElementById('kitchen-status-heading');
+                        const badge = document.getElementById('kitchen-status-badge');
+                        const desc = document.getElementById('kitchen-status-desc');
+                        const eta = document.getElementById('kitchen-status-eta');
+                        const dot = document.getElementById('kitchen-status-dot');
+
+                        if (heading) heading.textContent = 'Pesanan Telah Selesai';
+                        if (badge) {
+                            badge.textContent = 'Selesai';
+                            badge.className = 'text-[10px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-0.5 rounded-full uppercase';
+                        }
+                        if (desc) desc.textContent = 'Pesanan Anda telah selesai disiapkan dan disajikan ke meja Anda. Selamat menikmati!';
+                        if (eta) eta.textContent = 'Telah Disajikan';
+                        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+                        return; // Cease further polling
+                    }
+                }
+            } catch (err) {
+                // Silently ignore transient fetch failures
+            } finally {
+                isChecking = false;
+                scheduleNextCheck();
+            }
+        };
+
+        function scheduleNextCheck() {
+            if (currentStatus === 'selesai' || currentStatus === 'completed') return;
+            if (pollTimer) clearTimeout(pollTimer);
+
+            // Serverless efficiency: slow down interval to 15s when tab is in background
+            const interval = document.hidden ? 15000 : 3500;
+            pollTimer = setTimeout(checkOrderStatus, interval);
+        }
+
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && currentStatus !== 'selesai' && currentStatus !== 'completed') {
+                checkOrderStatus();
+            }
+        });
+
+        scheduleNextCheck();
+    })();
+</script>
 @endsection
 

@@ -3,14 +3,14 @@
 @section('title', 'Kelola Staf & Pengguna - Marmoyo Smart-Dine')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-4 sm:space-y-6">
     <!-- Header Section -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h2 class="text-xl font-black text-stone-900">Kelola Staf &amp; Akun Pengguna</h2>
-            <p class="text-xs text-stone-500 mt-1">Manajemen kredensial dan hak akses internal sistem POS tanpa registrasi publik.</p>
+            <h2 class="text-base sm:text-xl font-black text-stone-900">Kelola Staf &amp; Akun Pengguna</h2>
+            <p class="text-[11px] sm:text-xs text-stone-500 mt-0.5">Manajemen kredensial dan hak akses internal sistem POS tanpa registrasi publik.</p>
         </div>
-        <button onclick="openCreateUserModal()" class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow active:scale-95 transition">
+        <button onclick="openCreateUserModal()" class="self-start sm:self-auto inline-flex items-center space-x-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl shadow active:scale-95 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -41,32 +41,32 @@
     @endif
 
     <!-- Metric Overview Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs">
-            <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Total Staf Terdaftar</p>
-            <p class="text-2xl font-black text-stone-900 mt-1">{{ $users->count() }}</p>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div class="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-xs">
+            <p class="text-[10px] sm:text-[11px] font-bold text-stone-400 uppercase tracking-wider">Total Staf Terdaftar</p>
+            <p class="text-xl sm:text-2xl font-black text-stone-900 mt-1">{{ $users->count() }}</p>
             <span class="text-[10px] text-stone-500 mt-0.5 inline-block">Seluruh akun internal sistem</span>
         </div>
 
-        <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs">
-            <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Staf Kasir POS</p>
-            <p class="text-2xl font-black text-amber-600 mt-1">{{ $cashierCount }}</p>
+        <div class="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-xs">
+            <p class="text-[10px] sm:text-[11px] font-bold text-stone-400 uppercase tracking-wider">Staf Kasir POS</p>
+            <p class="text-xl sm:text-2xl font-black text-amber-600 mt-1">{{ $cashierCount }}</p>
             <span class="text-[10px] text-stone-500 mt-0.5 inline-block">Akses terminal transaksi &amp; live orders</span>
         </div>
 
-        <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs">
-            <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Administrator / Owner</p>
-            <p class="text-2xl font-black text-red-600 mt-1">{{ $adminCount }}</p>
+        <div class="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-xs">
+            <p class="text-[10px] sm:text-[11px] font-bold text-stone-400 uppercase tracking-wider">Administrator / Owner</p>
+            <p class="text-xl sm:text-2xl font-black text-red-600 mt-1">{{ $adminCount }}</p>
             <span class="text-[10px] text-stone-500 mt-0.5 inline-block">Akses penuh dashboard &amp; keuangan</span>
         </div>
     </div>
 
     <!-- Security Info Banner -->
-    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 flex items-start space-x-3">
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 sm:p-4 text-xs text-amber-900 flex items-start space-x-2.5 sm:space-x-3">
         <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
         </svg>
-        <div class="space-y-1">
+        <div class="space-y-0.5 sm:space-y-1">
             <p class="font-bold">Keamanan Akun Internal:</p>
             <p class="text-[11px] text-amber-800 leading-relaxed">
                 Sistem Marmoyo menggunakan otentikasi tertutup (*Closed-loop*). Pelanggan tidak dapat mendaftar sendiri dari luar. Semua akun kasir baru wajib dibuat oleh Owner dari halaman ini. Pastikan memberikan password sementara yang aman kepada kasir.
@@ -75,38 +75,38 @@
     </div>
 
     <!-- Users Table Card -->
-    <div class="bg-white border border-stone-200 rounded-3xl p-6 shadow-xs space-y-4">
-        <div class="flex items-center justify-between border-b border-stone-100 pb-3">
-            <h3 class="font-extrabold text-stone-900 text-sm">Daftar Akun Pengguna</h3>
-            <span class="text-xs text-stone-400">{{ $users->count() }} Pengguna Terdaftar</span>
+    <div class="bg-white border border-stone-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs space-y-3 sm:space-y-4">
+        <div class="flex items-center justify-between border-b border-stone-100 pb-2.5 sm:pb-3">
+            <h3 class="font-extrabold text-stone-900 text-xs sm:text-sm">Daftar Akun Pengguna</h3>
+            <span class="text-[11px] sm:text-xs text-stone-400">{{ $users->count() }} Pengguna Terdaftar</span>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
                 <thead>
                     <tr class="border-b border-stone-100 text-stone-400 uppercase font-semibold">
-                        <th class="pb-2.5">Nama &amp; Kredensial</th>
-                        <th class="pb-2.5">Hak Akses (Role)</th>
-                        <th class="pb-2.5">Terdaftar Sejak</th>
-                        <th class="pb-2.5">Status</th>
-                        <th class="pb-2.5 text-right">Aksi</th>
+                        <th class="pb-2.5 whitespace-nowrap">Nama &amp; Kredensial</th>
+                        <th class="pb-2.5 whitespace-nowrap">Hak Akses (Role)</th>
+                        <th class="pb-2.5 whitespace-nowrap">Terdaftar Sejak</th>
+                        <th class="pb-2.5 whitespace-nowrap">Status</th>
+                        <th class="pb-2.5 text-right whitespace-nowrap">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
                     @forelse($users as $user)
                         <tr class="hover:bg-stone-50 transition">
-                            <td class="py-3.5">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-xs shadow-xs {{ $user->role === 'admin' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-amber-100 text-amber-800 border border-amber-200' }}">
+                            <td class="py-3.5 whitespace-nowrap">
+                                <div class="flex items-center space-x-2.5 sm:space-x-3">
+                                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-extrabold text-xs shadow-2xs shrink-0 {{ $user->role === 'admin' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-amber-100 text-amber-800 border border-amber-200' }}">
                                         {{ strtoupper(substr($user->name, 0, 2)) }}
                                     </div>
-                                    <div>
-                                        <p class="font-extrabold text-stone-900 text-xs">{{ $user->name }}</p>
-                                        <p class="font-mono text-[11px] text-stone-500">{{ $user->email }}</p>
+                                    <div class="min-w-0">
+                                        <p class="font-extrabold text-stone-900 text-xs truncate">{{ $user->name }}</p>
+                                        <p class="font-mono text-[11px] text-stone-500 truncate">{{ $user->email }}</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="py-3.5">
+                            <td class="py-3.5 whitespace-nowrap">
                                 @if($user->role === 'admin')
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-100 text-red-800 border border-red-200">
                                         Owner / Admin
@@ -117,10 +117,10 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="py-3.5 text-stone-500 font-mono text-[11px]">
+                            <td class="py-3.5 text-stone-500 font-mono text-[11px] whitespace-nowrap">
                                 {{ $user->created_at ? $user->created_at->format('d/m/Y H:i') : '-' }}
                             </td>
-                            <td class="py-3.5">
+                            <td class="py-3.5 whitespace-nowrap">
                                 <span class="inline-flex items-center space-x-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md text-[10px] font-bold">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                     <span>Aktif</span>
@@ -130,17 +130,17 @@
                                 <!-- Tombol Edit & Ganti Password -->
                                 <button type="button" 
                                     onclick='openEditUserModal(@json($user))'
-                                    class="inline-flex items-center space-x-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs px-2.5 py-1.5 rounded-lg transition">
+                                    class="inline-flex items-center space-x-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs px-2.5 py-1.5 rounded-xl transition">
                                     <svg class="w-3.5 h-3.5 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
-                                    <span>Edit / Password</span>
+                                    <span>Edit</span>
                                 </button>
 
                                 <!-- Tombol Hapus (Dilindungi: Akun Sendiri Tidak Bisa Dihapus) -->
                                 @if(auth()->id() === $user->id)
                                     <span class="text-[10px] text-stone-400 italic font-semibold px-2 py-1 bg-stone-50 rounded-lg border border-stone-200">
-                                        (Akun Anda)
+                                        (Anda)
                                     </span>
                                 @else
                                     <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun staf \'{{ $user->name }}\'? Akun ini tidak akan dapat login lagi.')">
@@ -165,11 +165,11 @@
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL 1: TAMBAH STAF BARU                  -->
+<!-- MODAL 1: TAMBAH STAF BARU (Responsive)      -->
 <!-- ========================================== -->
-<div id="createUserModal" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-stone-200 space-y-4">
-        <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+<div id="createUserModal" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-stone-200 space-y-3.5 sm:space-y-4 max-h-[92vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-stone-100 pb-2.5 sm:pb-3">
             <div>
                 <h3 class="font-black text-stone-900 text-sm">Tambah Akun Staf Baru</h3>
                 <p class="text-[11px] text-stone-500">Kredensial untuk kasir atau pengelola kedai</p>
@@ -216,11 +216,11 @@
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL 2: EDIT STAF & RESET PASSWORD       -->
+<!-- MODAL 2: EDIT STAF & RESET PASSWORD        -->
 <!-- ========================================== -->
-<div id="editUserModal" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-stone-200 space-y-4">
-        <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+<div id="editUserModal" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-stone-200 space-y-3.5 sm:space-y-4 max-h-[92vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-stone-100 pb-2.5 sm:pb-3">
             <div>
                 <h3 class="font-black text-stone-900 text-sm">Edit Data Staf &amp; Reset Password</h3>
                 <p class="text-[11px] text-stone-500">Perbarui profil atau ganti password akun staf</p>
@@ -290,4 +290,3 @@
     }
 </script>
 @endsection
-

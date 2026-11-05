@@ -37,16 +37,16 @@ class CustomerOrderController extends Controller
         $token = $request->query('token');
 
         if (!$tableNumber || !$token) {
-            return view('customer.invalid-table', [
+            return response()->view('customer.invalid-table', [
                 'message' => 'QR Code tidak valid atau informasi meja tidak lengkap.',
-            ]);
+            ], 403);
         }
 
         $table = $this->tableService->verifyAndSetSession($tableNumber, $token);
         if (!$table) {
-            return view('customer.invalid-table', [
+            return response()->view('customer.invalid-table', [
                 'message' => "Token QR Code Meja {$tableNumber} tidak valid atau telah kedaluwarsa. Silakan hubungi kasir.",
-            ]);
+            ], 403);
         }
 
         return redirect()->route('customer.menu');
@@ -223,6 +223,10 @@ class CustomerOrderController extends Controller
 
         $cart = Session::get('cart', []);
         if (empty($cart)) {
+            // If order was already created just moments ago (e.g. resubmission after connection drop or double-click), redirect safely
+            if ($lastOrderNumber = Session::get('last_created_order_number')) {
+                return redirect()->route('customer.payment', ['orderNumber' => $lastOrderNumber]);
+            }
             return redirect()->route('customer.menu')->with('error', 'Keranjang belanja Anda masih kosong.');
         }
 
@@ -257,10 +261,31 @@ class CustomerOrderController extends Controller
             );
         }
 
-        // Clear cart after successful order creation
+        // Store last created order for resilience against page reload / network retry, then clear cart
+        Session::put('last_created_order_number', $order->order_number);
         Session::forget(['cart', 'applied_promo']);
 
         return redirect()->route('customer.payment', ['orderNumber' => $order->order_number]);
+    }
+
+    /**
+     * API for Customer Realtime Payment & Order Status polling.
+     */
+    public function paymentStatusApi(string $orderNumber)
+    {
+        $order = Order::with('payment')->where('order_number', $orderNumber)->first();
+        if (!$order) {
+            return response()->json(['error' => 'Pesanan tidak ditemukan'], 404);
+        }
+
+        return response()->json([
+            'order_number' => $order->order_number,
+            'is_paid' => $order->isPaid(),
+            'payment_status' => $order->payment_status,
+            'order_status' => $order->status,
+            'payment_method' => $order->payment_method,
+            'redirect_url' => route('customer.order-status', ['orderNumber' => $order->order_number]),
+        ]);
     }
 
     /**

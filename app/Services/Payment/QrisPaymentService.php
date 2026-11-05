@@ -55,6 +55,11 @@ class QrisPaymentService
      */
     public function verifyPayment(Payment $payment): bool
     {
+        // Idempotency: if already verified as success, return true immediately
+        if ($payment->isSuccess()) {
+            return true;
+        }
+
         if ($payment->isExpired()) {
             $payment->update(['status' => 'expired']);
             $payment->order->update(['payment_status' => 'expired']);
@@ -69,7 +74,7 @@ class QrisPaymentService
 
             $order = $payment->order;
             $order->update([
-                'status' => 'cooking', // Automatically forwarded to Kitchen / Live Cook
+                'status' => 'menunggu', // Antrean menunggu disajikan
                 'payment_status' => 'paid',
                 'payment_method' => 'qris',
             ]);
