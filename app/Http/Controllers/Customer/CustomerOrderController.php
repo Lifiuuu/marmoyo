@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\RestaurantTable;
 use App\Services\Ai\AiMenuRecommendationService;
+use App\Services\Payment\MidtransService;
 use App\Services\Payment\QrisPaymentService;
 use App\Services\Printer\KitchenPrintFormatter;
 use App\Services\Table\TableSessionService;
@@ -25,6 +26,7 @@ class CustomerOrderController extends Controller
         protected AiMenuRecommendationService $aiService,
         protected CreateOrderAction $createOrderAction,
         protected QrisPaymentService $qrisService,
+        protected MidtransService $midtransService,
         protected KitchenPrintFormatter $printFormatter
     ) {}
 
@@ -284,6 +286,17 @@ class CustomerOrderController extends Controller
         $order = Order::with('payment')->where('order_number', $orderNumber)->first();
         if (!$order) {
             return response()->json(['error' => 'Pesanan tidak ditemukan'], 404);
+        }
+
+        // On-demand sync with Midtrans if payment is still pending
+        if (!$order->isPaid() && $order->payment && $order->payment->method === 'qris') {
+            if ($this->midtransService->isConfigured()) {
+                $statusData = $this->midtransService->getTransactionStatus($order->order_number);
+                if ($statusData && in_array($statusData['transaction_status'] ?? '', ['settlement', 'capture'])) {
+                    $this->qrisService->verifyPayment($order->payment);
+                    $order->refresh();
+                }
+            }
         }
 
         return response()->json([

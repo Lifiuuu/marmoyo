@@ -48,7 +48,7 @@
             </div>
 
             <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl shadow-md transition active:scale-95 text-xs">
-                Masuk ke Sistem &rarr;
+                Masuk ke Sistem
             </button>
         </form>
     </div>

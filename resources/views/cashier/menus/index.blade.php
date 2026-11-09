@@ -58,7 +58,7 @@
                                         <span class="w-2 h-2 rounded-full {{ $menu->is_available ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500' }}"></span>
                                         <span class="text-[11px]">{{ $menu->is_available ? 'Tersedia' : 'Habis' }}</span>
                                     </span>
-                                    <span class="text-[9px] text-stone-400 font-normal mt-0.5">⇄ Ganti</span>
+                                    <span class="text-[9px] text-stone-400 font-normal mt-0.5">Ubah</span>
                                 </button>
                             </form>
                         </div>
@@ -111,7 +111,7 @@
                                             <button type="submit" class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition active:scale-95 shadow-sm {{ $menu->is_available ? 'bg-emerald-950 border border-emerald-700 text-emerald-300 hover:bg-emerald-900' : 'bg-rose-950 border border-rose-700 text-rose-300 hover:bg-rose-900' }}">
                                                 <span class="w-2 h-2 rounded-full {{ $menu->is_available ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500' }}"></span>
                                                 <span>{{ $menu->is_available ? 'Tersedia' : 'Habis (Sold Out)' }}</span>
-                                                <span class="text-[10px] text-stone-400 font-normal ml-1">⇄ Ganti</span>
+                                                <span class="text-[10px] text-stone-400 font-normal ml-1">Ubah</span>
                                             </button>
                                         </form>
                                     </td>

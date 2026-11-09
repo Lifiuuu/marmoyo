@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Cashier\CashierController;
 use App\Http\Controllers\Customer\CustomerOrderController;
+use App\Http\Controllers\Payment\MidtransWebhookController;
 use App\Http\Middleware\EnsureTableSession;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -36,10 +37,15 @@ Route::middleware([EnsureTableSession::class])->group(function () {
 
 Route::get('/payment/{orderNumber}', [CustomerOrderController::class, 'payment'])->name('customer.payment');
 Route::get('/payment/{orderNumber}/status', [CustomerOrderController::class, 'paymentStatusApi'])->name('customer.payment.status-api');
+Route::get('/customer/payment/status/{orderNumber}', [CustomerOrderController::class, 'paymentStatusApi']);
 Route::post('/payment/{orderNumber}/verify', [CustomerOrderController::class, 'verifyQris'])->name('customer.verify-qris');
 Route::post('/payment/{orderNumber}/switch', [CustomerOrderController::class, 'switchPaymentMethod'])->name('customer.payment.switch');
 Route::get('/order/{orderNumber}/status', [CustomerOrderController::class, 'orderStatus'])->name('customer.order-status');
 Route::get('/order/{orderNumber}/receipt', [CustomerOrderController::class, 'downloadReceipt'])->name('customer.download-receipt');
+
+// Midtrans Webhook Notification
+Route::post('/api/midtrans/notification', [MidtransWebhookController::class, 'handle'])->name('midtrans.notification');
+Route::post('/midtrans/notification', [MidtransWebhookController::class, 'handle']);
 
 // ==============================
 // 2. Authentication Routes
