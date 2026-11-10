@@ -102,7 +102,7 @@
             <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-3.5 shadow-sm space-y-2.5">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-1.5">
-                        <span class="text-amber-800 font-bold text-xs">{{ $aiRecommendation['title'] }}</span>
+                        <span class="text-amber-800 font-bold text-xs">✨ Rekomendasi Spesial AI: {{ $aiRecommendation['title'] }}</span>
                     </div>
                     <span class="text-[9px] font-black uppercase bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded">
                         {{ $aiRecommendation['badge'] }}

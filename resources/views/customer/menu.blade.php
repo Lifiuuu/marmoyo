@@ -48,7 +48,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 @foreach($category->menus as $menu)
-                    <div class="bg-white border border-stone-200 rounded-xl p-3 flex space-x-3 shadow-xs hover:border-red-300 transition">
+                    <div class="bg-white border border-stone-200 rounded-xl p-3 flex space-x-3 shadow-xs hover:border-red-300 transition cursor-pointer" onclick="openMenuModal({{ $menu->id }})">
                         <img src="{{ $menu->image_url ?? 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200' }}" alt="{{ $menu->name }}" class="w-20 h-20 rounded-lg object-cover shrink-0 border border-stone-100">
                         
                         <div class="flex-1 flex flex-col justify-between">
@@ -70,7 +70,7 @@
 
                             <div class="flex items-center justify-between mt-2 pt-1 border-t border-stone-100">
                                 <span class="text-xs font-black text-stone-900">Rp{{ number_format($menu->base_price, 0, ',', '.') }}</span>
-                                <button type="button" onclick="openMenuModal({{ $menu->id }})" class="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white text-[11px] font-extrabold px-3 py-1 rounded-lg border border-red-200 hover:border-red-600 transition active:scale-95">
+                                <button type="button" onclick="event.stopPropagation(); openMenuModal({{ $menu->id }})" class="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white text-[11px] font-extrabold px-3 py-1 rounded-lg border border-red-200 hover:border-red-600 transition active:scale-95">
                                     + Tambah
                                 </button>
                             </div>
@@ -98,35 +98,49 @@
     </div>
 @endif
 
-<!-- Customization Modal Dialog (100% Dynamic from Supabase variants) -->
+<!-- Customization Modal Dialog (Dynamic per Category: Mie, Dimsum/Sides, Minuman) -->
 <div id="customize-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
-    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-md sm:max-w-lg w-full max-h-[85vh] overflow-y-auto p-4 sm:p-6 shadow-2xl flex flex-col justify-between">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-md sm:max-w-lg w-full max-h-[88vh] overflow-y-auto p-4 sm:p-6 shadow-2xl flex flex-col justify-between">
         <div>
-            <div class="flex items-center justify-between pb-3 border-b border-stone-200">
-                <div>
-                    <h3 id="modal-menu-name" class="font-extrabold text-stone-900 text-sm">Kustomisasi Menu</h3>
-                    <p id="modal-menu-price" class="text-xs text-red-600 font-black">Rp0</p>
+            <!-- Header Modal with Thumbnail and Badge -->
+            <div class="flex items-start justify-between pb-3 border-b border-stone-200">
+                <div class="flex items-center space-x-3 min-w-0 pr-2">
+                    <img id="modal-menu-image" src="" alt="" class="w-12 h-12 rounded-xl object-cover border border-stone-100 shrink-0 shadow-xs">
+                    <div class="min-w-0">
+                        <span id="modal-menu-badge" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mb-0.5 bg-red-100 text-red-700">Aneka Mie</span>
+                        <h3 id="modal-menu-name" class="font-extrabold text-stone-900 text-sm leading-tight truncate">Nama Menu</h3>
+                        <p id="modal-menu-price" class="text-xs text-red-600 font-black mt-0.5">Rp0</p>
+                    </div>
                 </div>
-                <button type="button" onclick="closeCustomizeModal()" class="w-7 h-7 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center text-xs font-bold">&times;</button>
+                <button type="button" onclick="closeCustomizeModal()" class="w-7 h-7 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center text-xs font-bold shrink-0">&times;</button>
+            </div>
+
+            <!-- Helpful Category Context Hint -->
+            <div id="modal-category-hint" class="mt-3 p-2.5 rounded-xl text-xs flex items-center space-x-2 bg-stone-50 text-stone-700 border border-stone-200/60">
+                <span id="modal-hint-icon" class="text-base shrink-0">🍜</span>
+                <span id="modal-hint-text" class="text-[11px] leading-snug">Sesuaikan tingkat kepedasan, jenis mie, dan topping kenikmatan.</span>
             </div>
 
             <form id="customize-form" action="{{ route('customer.cart.add') }}" method="POST" class="mt-4 space-y-4">
                 @csrf
                 <input type="hidden" name="menu_id" id="modal-menu-id">
 
-                <!-- Dynamic Variant Sections (Injected via JS from Supabase) -->
+                <!-- Dynamic Variant Sections (Injected via JS - ONLY for menus with variants such as Mie) -->
                 <div id="dynamic-variants-container" class="space-y-4"></div>
 
-                <!-- Tambah Topping Kenyang (Dynamic from Supabase) -->
+                <!-- Tambah Topping Kenyang (Dynamic from Supabase - ONLY for Noodle Category) -->
                 @if($allToppings->isNotEmpty())
                     <div id="toppings-section" class="space-y-2">
-                        <label class="block text-xs font-bold text-stone-800">Tambah Topping Kenyang</label>
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-bold text-stone-800">Tambah Topping Kenyang</label>
+                            <span class="text-[10px] text-stone-400 font-medium">Khusus Menu Mie</span>
+                        </div>
                         <div class="space-y-1.5 text-xs">
                             @foreach($allToppings as $topping)
                                 <label class="flex items-center justify-between p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
                                     <span class="flex items-center space-x-2">
-                                        <input type="checkbox" name="toppings[]" value="{{ $topping->id }}" class="text-red-600 rounded focus:ring-red-500">
-                                        <span>{{ $topping->name }}</span>
+                                        <input type="checkbox" name="toppings[]" value="{{ $topping->id }}" data-price="{{ $topping->price }}" onchange="updateModalTotalPrice()" class="text-red-600 rounded focus:ring-red-500 topping-checkbox">
+                                        <span class="text-stone-800">{{ $topping->name }}</span>
                                     </span>
                                     <span class="font-bold text-stone-700">+Rp{{ number_format($topping->price, 0, ',', '.') }}</span>
                                 </label>
@@ -135,22 +149,23 @@
                     </div>
                 @endif
 
-                <!-- Catatan Khusus Pesanan -->
+                <!-- Catatan Khusus Pesanan (Context-aware label & placeholder) -->
                 <div class="space-y-1.5">
-                    <label class="block text-xs font-bold text-stone-800">Catatan Khusus Pesanan</label>
-                    <input type="text" name="special_notes" id="modal-special-notes" placeholder="Contoh: Jangan terlalu berminyak ya kak, kuah banyakin" class="w-full text-xs p-2.5 rounded-lg border border-stone-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none">
+                    <label id="modal-notes-label" class="block text-xs font-bold text-stone-800">Catatan Khusus Pesanan</label>
+                    <input type="text" name="special_notes" id="modal-special-notes" placeholder="Contoh: Saus dipisah ya kak, tolong goreng agak garing" class="w-full text-xs p-2.5 rounded-lg border border-stone-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none">
                 </div>
 
-                <!-- Jumlah Porsi & Submit Button -->
-                <div class="pt-3 border-t border-stone-200 flex items-center justify-between">
-                    <div class="flex items-center space-x-2 border border-stone-200 rounded-lg p-1 bg-stone-50">
-                        <button type="button" onclick="decrementQty()" class="w-6 h-6 rounded bg-white text-stone-700 font-bold text-xs shadow-xs hover:bg-stone-100">-</button>
-                        <input type="number" name="quantity" id="modal-qty" value="1" min="1" class="w-8 text-center text-xs font-bold bg-transparent outline-none">
-                        <button type="button" onclick="incrementQty()" class="w-6 h-6 rounded bg-white text-stone-700 font-bold text-xs shadow-xs hover:bg-stone-100">+</button>
+                <!-- Jumlah Porsi & Submit Button with Dynamic Total -->
+                <div class="pt-3 border-t border-stone-200 flex items-center justify-between gap-3">
+                    <div class="flex items-center space-x-2 border border-stone-200 rounded-lg p-1 bg-stone-50 shrink-0">
+                        <button type="button" onclick="decrementQty()" class="w-6 h-6 rounded bg-white text-stone-700 font-bold text-xs shadow-xs hover:bg-stone-100 flex items-center justify-center">-</button>
+                        <input type="number" name="quantity" id="modal-qty" value="1" min="1" onchange="updateModalTotalPrice()" class="w-8 text-center text-xs font-bold bg-transparent outline-none">
+                        <button type="button" onclick="incrementQty()" class="w-6 h-6 rounded bg-white text-stone-700 font-bold text-xs shadow-xs hover:bg-stone-100 flex items-center justify-center">+</button>
                     </div>
 
-                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow active:scale-95 transition">
-                        + Tambah ke Keranjang
+                    <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow active:scale-95 transition flex items-center justify-between">
+                        <span>+ Tambah ke Keranjang</span>
+                        <span id="modal-btn-total" class="font-black">Rp0</span>
                     </button>
                 </div>
             </form>
@@ -161,25 +176,96 @@
 <script>
     // Injected live from Supabase database
     const menusDatabase = @json($categories->pluck('menus')->flatten(1)->keyBy('id'));
+    let currentModalMenu = null;
 
     function openMenuModal(menuId) {
         const menu = menusDatabase[menuId];
         if (!menu) return;
+        currentModalMenu = menu;
+
+        const categorySlug = (menu.category && menu.category.slug) ? menu.category.slug : '';
+        const isNoodle = (menu.category_id === 1) || categorySlug.includes('mie');
+        const isSides = (menu.category_id === 2) || categorySlug.includes('sides') || categorySlug.includes('dimsum');
+        const isDrink = (menu.category_id === 3) || categorySlug.includes('minum');
 
         document.getElementById('modal-menu-id').value = menu.id;
         document.getElementById('modal-menu-name').innerText = menu.name;
-        document.getElementById('modal-menu-price').innerText = 'Rp ' + Number(menu.base_price).toLocaleString('id-ID');
         document.getElementById('modal-qty').value = 1;
         document.getElementById('modal-special-notes').value = '';
+
+        // Image thumbnail
+        const imgEl = document.getElementById('modal-menu-image');
+        if (imgEl) {
+            imgEl.src = menu.image_url || 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200';
+            imgEl.alt = menu.name;
+        }
+
+        // Category Badge, Helper Text, Label & Placeholder
+        const badgeEl = document.getElementById('modal-menu-badge');
+        const hintEl = document.getElementById('modal-category-hint');
+        const hintIcon = document.getElementById('modal-hint-icon');
+        const hintText = document.getElementById('modal-hint-text');
+        const notesLabel = document.getElementById('modal-notes-label');
+        const notesInput = document.getElementById('modal-special-notes');
+
+        if (isNoodle) {
+            if (badgeEl) {
+                badgeEl.innerText = '🍜 Aneka Mie';
+                badgeEl.className = 'inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mb-0.5 bg-red-100 text-red-700';
+            }
+            if (hintEl) {
+                hintEl.className = 'mt-3 p-2.5 rounded-xl text-xs flex items-center space-x-2 bg-red-50 text-red-900 border border-red-200/60';
+                hintIcon.innerText = '🍜';
+                hintText.innerText = 'Pilih tingkat kepedasan, jenis mie, dan topping favorit Anda.';
+            }
+            if (notesLabel) notesLabel.innerText = 'Catatan Khusus Mie (Opsional)';
+            if (notesInput) notesInput.placeholder = 'Contoh: Jangan terlalu berminyak, kuah dipisah ya kak';
+        } else if (isSides) {
+            if (badgeEl) {
+                badgeEl.innerText = '🥟 Dimsum & Sides';
+                badgeEl.className = 'inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mb-0.5 bg-amber-100 text-amber-800';
+            }
+            if (hintEl) {
+                hintEl.className = 'mt-3 p-2.5 rounded-xl text-xs flex items-center space-x-2 bg-amber-50 text-amber-900 border border-amber-200/60';
+                hintIcon.innerText = '🥟';
+                hintText.innerText = 'Dimsum & cemilan disajikan hangat lengkap dengan saus cocolan khas.';
+            }
+            if (notesLabel) notesLabel.innerText = 'Catatan Khusus Dimsum / Cemilan (Opsional)';
+            if (notesInput) notesInput.placeholder = 'Contoh: Saus dipisah ya kak, tolong goreng agak garing';
+        } else if (isDrink) {
+            if (badgeEl) {
+                badgeEl.innerText = '🥤 Minuman Segar';
+                badgeEl.className = 'inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mb-0.5 bg-sky-100 text-sky-800';
+            }
+            if (hintEl) {
+                hintEl.className = 'mt-3 p-2.5 rounded-xl text-xs flex items-center space-x-2 bg-sky-50 text-sky-900 border border-sky-200/60';
+                hintIcon.innerText = '🥤';
+                hintText.innerText = 'Minuman segar siap disajikan dingin pereda rasa pedas.';
+            }
+            if (notesLabel) notesLabel.innerText = 'Catatan Minuman (Opsional)';
+            if (notesInput) notesInput.placeholder = 'Contoh: Es sedikit / tanpa es, jangan terlalu manis';
+        } else {
+            if (badgeEl) {
+                badgeEl.innerText = menu.category ? menu.category.name : 'Menu';
+                badgeEl.className = 'inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mb-0.5 bg-stone-100 text-stone-700';
+            }
+            if (hintEl) {
+                hintEl.className = 'mt-3 p-2.5 rounded-xl text-xs flex items-center space-x-2 bg-stone-50 text-stone-800 border border-stone-200/60';
+                hintIcon.innerText = '🍽️';
+                hintText.innerText = 'Tentukan porsi dan catatan khusus jika ada.';
+            }
+            if (notesLabel) notesLabel.innerText = 'Catatan Pesanan (Opsional)';
+            if (notesInput) notesInput.placeholder = 'Contoh: Catatan khusus untuk menu ini';
+        }
 
         // Reset all topping checkboxes
         document.querySelectorAll('#toppings-section input[type="checkbox"]').forEach(cb => cb.checked = false);
 
-        // Build dynamic variants container
+        // Build dynamic variants container ONLY for Noodle dishes with variants
         const variantsContainer = document.getElementById('dynamic-variants-container');
         variantsContainer.innerHTML = '';
 
-        if (menu.variants && menu.variants.length > 0) {
+        if (isNoodle && menu.variants && menu.variants.length > 0) {
             // Group variants by group_name
             const groupedVariants = {};
             menu.variants.forEach(variant => {
@@ -218,7 +304,7 @@
 
                     optionLabel.innerHTML = `
                         <span class="flex items-center space-x-2">
-                            <input type="radio" name="${inputName}" value="${variant.name}" ${isDefault ? 'checked' : ''} class="text-red-600 focus:ring-red-500">
+                            <input type="radio" name="${inputName}" value="${variant.name}" data-additional="${variant.additional_price || 0}" ${isDefault ? 'checked' : ''} onchange="updateModalTotalPrice()" class="text-red-600 focus:ring-red-500">
                             <span class="${isDefault && groupName === 'Tingkat Kepedasan' ? 'font-bold text-stone-900' : ''}">${variant.name}</span>
                         </span>
                         <span class="${Number(variant.additional_price) > 0 ? 'text-red-600 font-bold' : 'text-stone-400 font-medium'}">${priceText}</span>
@@ -232,32 +318,74 @@
             });
         }
 
-        // Show/hide toppings: Hide for drinks, show for noodles & snacks
+        // Show/hide toppings: STRICTLY ONLY FOR NOODLE DISHES!
+        // Udang Keju, Udang Rambutan, Dimsum Ayam, Minuman NEVER show toppings!
         const toppingsSection = document.getElementById('toppings-section');
         if (toppingsSection) {
-            if (menu.category_id === 3) { // Minuman
-                toppingsSection.classList.add('hidden');
-            } else {
+            if (isNoodle) {
                 toppingsSection.classList.remove('hidden');
+            } else {
+                toppingsSection.classList.add('hidden');
             }
         }
 
+        updateModalTotalPrice();
         document.getElementById('customize-modal').classList.remove('hidden');
+    }
+
+    function updateModalTotalPrice() {
+        if (!currentModalMenu) return;
+
+        let unitPrice = Number(currentModalMenu.base_price) || 0;
+
+        // Add checked variants additional prices
+        const checkedRadios = document.querySelectorAll('#dynamic-variants-container input[type="radio"]:checked');
+        checkedRadios.forEach(radio => {
+            const addPrice = Number(radio.getAttribute('data-additional')) || 0;
+            unitPrice += addPrice;
+        });
+
+        // Add checked toppings price (only if toppings section visible)
+        const toppingsSection = document.getElementById('toppings-section');
+        if (toppingsSection && !toppingsSection.classList.contains('hidden')) {
+            const checkedToppings = document.querySelectorAll('#toppings-section input[type="checkbox"]:checked');
+            checkedToppings.forEach(cb => {
+                const topPrice = Number(cb.getAttribute('data-price')) || 0;
+                unitPrice += topPrice;
+            });
+        }
+
+        const qtyInput = document.getElementById('modal-qty');
+        const qty = Math.max(1, parseInt(qtyInput ? qtyInput.value : 1) || 1);
+        const totalPrice = unitPrice * qty;
+
+        const priceEl = document.getElementById('modal-menu-price');
+        if (priceEl) {
+            priceEl.innerText = 'Rp ' + unitPrice.toLocaleString('id-ID') + (qty > 1 ? ' / porsi' : '');
+        }
+
+        const btnTotalEl = document.getElementById('modal-btn-total');
+        if (btnTotalEl) {
+            btnTotalEl.innerText = 'Rp ' + totalPrice.toLocaleString('id-ID');
+        }
     }
 
     function closeCustomizeModal() {
         document.getElementById('customize-modal').classList.add('hidden');
+        currentModalMenu = null;
     }
 
     function incrementQty() {
         const input = document.getElementById('modal-qty');
         input.value = parseInt(input.value || 1) + 1;
+        updateModalTotalPrice();
     }
 
     function decrementQty() {
         const input = document.getElementById('modal-qty');
         if (parseInt(input.value) > 1) {
             input.value = parseInt(input.value) - 1;
+            updateModalTotalPrice();
         }
     }
 </script>

@@ -80,48 +80,132 @@ class QrisPaymentService
     }
 
     /**
-     * Verify QRIS payment and dispatch order to kitchen.
+     * Strictly verify QRIS payment against database & payment gateway.
+     *
+     * @param Payment $payment
+     * @return array [
+     *     'success' => bool,
+     *     'status' => string,
+     *     'message' => string
+     * ]
+     */
+    public function verifyPaymentWithStatus(Payment $payment): array
+    {
+        // 1. Idempotency: if already recorded as success in database, return true immediately
+        if ($payment->isSuccess() || ($payment->order && $payment->order->isPaid())) {
+            return [
+                'success' => true,
+                'status' => 'success',
+                'message' => 'Pembayaran telah diverifikasi dan tercatat di database.',
+            ];
+        }
+
+        // 2. Check if payment expired
+        if ($payment->isExpired()) {
+            $payment->update(['status' => 'expired']);
+            if ($payment->order) {
+                $payment->order->update(['payment_status' => 'expired']);
+            }
+            return [
+                'success' => false,
+                'status' => 'expired',
+                'message' => 'Waktu pembayaran QRIS telah kedaluwarsa. Silakan lakukan pemesanan ulang atau pilih bayar tunai di kasir.',
+            ];
+        }
+
+        // 3. Check with payment gateway (Midtrans) if configured
+        if ($this->midtransService->isConfigured()) {
+            $midtransStatus = $this->midtransService->getTransactionStatus($payment->order->order_number);
+
+            if (!$midtransStatus) {
+                return [
+                    'success' => false,
+                    'status' => 'unpaid',
+                    'message' => 'Pembayaran belum terdeteksi oleh sistem payment gateway. Pastikan Anda telah menyelesaikan pembayaran QRIS melalui mobile banking / e-wallet Anda.',
+                ];
+            }
+
+            $trxStatus = $midtransStatus['transaction_status'] ?? '';
+            $fraudStatus = $midtransStatus['fraud_status'] ?? 'accept';
+
+            // Only 'settlement' or 'capture' (with accept) means real money has been received
+            if ($trxStatus === 'settlement' || ($trxStatus === 'capture' && $fraudStatus === 'accept')) {
+                return $this->markPaymentSuccess($payment, $midtransStatus);
+            }
+
+            if ($trxStatus === 'pending') {
+                $payment->update(['status' => 'pending']);
+                return [
+                    'success' => false,
+                    'status' => 'pending',
+                    'message' => 'Pembayaran belum kami terima! Status transaksi QRIS Anda masih PENDING di perbankan. Silakan selesaikan pembayaran di aplikasi Anda terlebih dahulu.',
+                ];
+            }
+
+            if (in_array($trxStatus, ['expire', 'cancel', 'deny'])) {
+                $payment->update(['status' => 'expired']);
+                if ($payment->order) {
+                    $payment->order->update(['payment_status' => 'expired']);
+                }
+                return [
+                    'success' => false,
+                    'status' => 'expired',
+                    'message' => 'Transaksi QRIS dibatalkan atau telah kedaluwarsa oleh sistem payment gateway.',
+                ];
+            }
+
+            return [
+                'success' => false,
+                'status' => 'unpaid',
+                'message' => 'Pembayaran QRIS belum tercatat lunas di perbankan (Status: ' . strtoupper($trxStatus) . ').',
+            ];
+        }
+
+        // 4. If payment gateway is not configured:
+        // NEVER allow user clicking the button to automatically approve their own order!
+        return [
+            'success' => false,
+            'status' => 'unpaid',
+            'message' => 'Pembayaran QRIS belum tercatat lunas di database sistem. Pesanan belum dapat diteruskan ke dapur.',
+        ];
+    }
+
+    /**
+     * Legacy boolean wrapper for verifyPayment.
      */
     public function verifyPayment(Payment $payment): bool
     {
-        // Idempotency: if already verified as success, return true immediately
-        if ($payment->isSuccess()) {
-            return true;
-        }
+        $result = $this->verifyPaymentWithStatus($payment);
+        return $result['success'];
+    }
 
-        if ($payment->isExpired()) {
-            $payment->update(['status' => 'expired']);
-            $payment->order->update(['payment_status' => 'expired']);
-            return false;
-        }
-
-        // If Midtrans is configured and we want to verify via Midtrans status API
-        if ($this->midtransService->isConfigured()) {
-            $midtransStatus = $this->midtransService->getTransactionStatus($payment->order->order_number);
-            if ($midtransStatus) {
-                $status = $midtransStatus['transaction_status'] ?? '';
-                if (!in_array($status, ['settlement', 'capture'])) {
-                    if (in_array($status, ['expire', 'cancel', 'deny'])) {
-                        $payment->update(['status' => 'expired']);
-                        $payment->order->update(['payment_status' => 'expired']);
-                    }
-                    return false;
-                }
-            }
-        }
-
-        return DB::transaction(function () use ($payment) {
-            $payment->update([
+    /**
+     * Mark payment as success in DB and dispatch to kitchen.
+     */
+    public function markPaymentSuccess(Payment $payment, ?array $meta = null): array
+    {
+        return DB::transaction(function () use ($payment, $meta) {
+            $updateData = [
                 'status' => 'success',
                 'paid_at' => Carbon::now(),
-            ]);
+            ];
+            if ($meta) {
+                $updateData['payload_meta'] = $meta;
+                if (!empty($meta['transaction_id'])) {
+                    $updateData['transaction_id'] = $meta['transaction_id'];
+                }
+            }
+
+            $payment->update($updateData);
 
             $order = $payment->order;
-            $order->update([
-                'status' => 'menunggu', // Antrean menunggu disajikan
-                'payment_status' => 'paid',
-                'payment_method' => 'qris',
-            ]);
+            if ($order) {
+                $order->update([
+                    'status' => 'menunggu', // Antrean menunggu disajikan
+                    'payment_status' => 'paid',
+                    'payment_method' => 'qris',
+                ]);
+            }
 
             // Sync dynamic bestseller rankings based on new sales transaction
             try {
@@ -143,7 +227,11 @@ class QrisPaymentService
                 Log::warning('Failed broadcasting to Supabase: ' . $e->getMessage());
             }
 
-            return true;
+            return [
+                'success' => true,
+                'status' => 'success',
+                'message' => 'Pembayaran QRIS berhasil dikonfirmasi!',
+            ];
         });
     }
 }

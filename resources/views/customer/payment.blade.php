@@ -61,16 +61,46 @@
                 @endif
             </div>
 
-            <!-- Auto-verification simulation button -->
-            <form action="{{ route('customer.verify-qris', ['orderNumber' => $order->order_number]) }}" method="POST">
+            <!-- Guarded Verification Button (Strictly Verified with Bank/Gateway) -->
+            <form id="form-verify-qris" action="{{ route('customer.verify-qris', ['orderNumber' => $order->order_number]) }}" method="POST" onsubmit="handleVerifySubmit(this)">
                 @csrf
-                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-black py-3 rounded-xl shadow-md active:scale-95 transition flex items-center justify-center space-x-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                <button type="submit" id="btn-verify-qris" class="w-full bg-red-600 hover:bg-red-700 disabled:bg-stone-400 disabled:cursor-not-allowed text-white text-xs font-black py-3.5 rounded-xl shadow-md active:scale-95 transition flex items-center justify-center space-x-2">
+                    <svg id="icon-verify" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span>Saya Sudah Membayar</span>
+                    <span id="text-verify">Saya Sudah Membayar</span>
                 </button>
+                <div class="mt-2.5 p-2 bg-stone-50 border border-stone-200/80 rounded-xl text-[10px] text-stone-500 text-center space-y-0.5">
+                    <p class="font-bold text-stone-700 flex items-center justify-center space-x-1">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Verifikasi Otomatis Terhubung ke Bank</span>
+                    </p>
+                    <p>Sistem memverifikasi mutasi bank/e-wallet secara real-time. Pesanan baru akan diproses jika pembayaran telah tercatat sah.</p>
+                </div>
             </form>
+
+            <script>
+                function handleVerifySubmit(form) {
+                    const btn = document.getElementById('btn-verify-qris');
+                    const text = document.getElementById('text-verify');
+                    const icon = document.getElementById('icon-verify');
+                    if (btn && text) {
+                        btn.disabled = true;
+                        text.innerText = 'Memeriksa Mutasi Bank...';
+                        if (icon) {
+                            icon.classList.add('animate-spin');
+                        }
+                        // Fallback re-enable if page does not redirect within 6 seconds
+                        setTimeout(() => {
+                            btn.disabled = false;
+                            text.innerText = 'Saya Sudah Membayar';
+                            if (icon) icon.classList.remove('animate-spin');
+                        }, 6000);
+                    }
+                }
+            </script>
 
             <div class="pt-2 border-t border-stone-100 flex items-center justify-between text-[11px]">
                 <form action="{{ route('customer.payment.switch', ['orderNumber' => $order->order_number]) }}" method="POST">

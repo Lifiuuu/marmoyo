@@ -51,7 +51,7 @@
                         <div class="menu-card bg-stone-950 border border-stone-800/80 hover:border-amber-500/70 rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between transition group {{ !$menu->is_available ? 'opacity-40 pointer-events-none' : 'cursor-pointer hover:shadow-lg hover:shadow-amber-950/20 active:scale-[0.98]' }}"
                              data-cat-id="{{ $category->id }}"
                              data-name="{{ strtolower($menu->name) }}"
-                             onclick="promptAddMenu({{ $menu->id }}, '{{ addslashes($menu->name) }}', {{ $menu->base_price }}, {{ $menu->is_spicy ? 'true' : 'false' }}, {{ $menu->default_spiciness_level ?? 2 }})">
+                             onclick="promptAddMenu({{ $menu->id }}, '{{ addslashes($menu->name) }}', {{ $menu->base_price }}, {{ $category->id === 1 ? 'true' : 'false' }}, {{ $menu->is_spicy ? 'true' : 'false' }}, {{ $menu->default_spiciness_level ?? 2 }})">
                             <div>
                                 <div class="w-full h-24 sm:h-28 rounded-xl bg-stone-900 border border-stone-800/60 overflow-hidden relative mb-2 flex items-center justify-center">
                                     @if($menu->image_url)
@@ -329,16 +329,28 @@
         });
     }
 
-    function promptAddMenu(id, name, price, isSpicy, defaultSpice) {
-        if (isSpicy) {
-            pendingCustomMenu = { id, name, price, isSpicy };
+    function promptAddMenu(id, name, price, isNoodle, isSpicy, defaultSpice) {
+        if (isNoodle) {
+            pendingCustomMenu = { id, name, price, isNoodle: true, isSpicy: true };
             document.getElementById('modal-menu-title').innerText = name;
             document.getElementById('modal-menu-price').innerText = 'Rp ' + price.toLocaleString('id-ID');
             document.getElementById('modal-spice-container').classList.remove('hidden');
             document.getElementById('modal-noodle-container').classList.remove('hidden');
             document.getElementById('modal-notes').value = '';
+            document.getElementById('modal-notes').placeholder = 'Misal: kuah dipisah, daun bawang sedikit';
+            document.getElementById('modal-customize').classList.remove('hidden');
+        } else if (isSpicy) {
+            // Spicy side/snack (like Ceker Pedas) - has spice level but NO noodle type
+            pendingCustomMenu = { id, name, price, isNoodle: false, isSpicy: true };
+            document.getElementById('modal-menu-title').innerText = name;
+            document.getElementById('modal-menu-price').innerText = 'Rp ' + price.toLocaleString('id-ID');
+            document.getElementById('modal-spice-container').classList.remove('hidden');
+            document.getElementById('modal-noodle-container').classList.add('hidden');
+            document.getElementById('modal-notes').value = '';
+            document.getElementById('modal-notes').placeholder = 'Misal: bumbu kuah banyakin';
             document.getElementById('modal-customize').classList.remove('hidden');
         } else {
+            // Snacks, Dimsum, Drinks: directly added to cart
             addToCart({
                 menu_id: id,
                 name: name,
@@ -358,8 +370,12 @@
 
     function confirmCustomizeAdd() {
         if (!pendingCustomMenu) return;
-        const spice = document.querySelector('input[name="modal_spice"]:checked')?.value || 'Level 2 (Pedas Sedang)';
-        const noodle = document.querySelector('input[name="modal_noodle"]:checked')?.value || 'Mie Keriting Kenyal';
+        const spice = pendingCustomMenu.isSpicy 
+            ? (document.querySelector('input[name="modal_spice"]:checked')?.value || 'Level 2 (Pedas Sedang)')
+            : null;
+        const noodle = pendingCustomMenu.isNoodle
+            ? (document.querySelector('input[name="modal_noodle"]:checked')?.value || 'Mie Keriting Kenyal')
+            : null;
         const notes = document.getElementById('modal-notes').value.trim();
 
         addToCart({
