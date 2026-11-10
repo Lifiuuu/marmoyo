@@ -17,6 +17,44 @@ class MarmoyoSmartDineTest extends TestCase
     {
         parent::setUp();
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
+
+        \Illuminate\Support\Facades\Http::fake(function (\Illuminate\Http\Client\Request $request) {
+            if (str_ends_with($request->url(), '/status')) {
+                if (str_contains($request->url(), 'UNPAID') || str_contains($request->url(), 'PENDING')) {
+                    return \Illuminate\Support\Facades\Http::response([
+                        'status_code' => '201',
+                        'transaction_status' => 'pending',
+                        'gross_amount' => '15000.00',
+                    ], 200);
+                }
+
+                return \Illuminate\Support\Facades\Http::response([
+                    'status_code' => '200',
+                    'transaction_status' => 'settlement',
+                    'fraud_status' => 'accept',
+                    'gross_amount' => '50000.00',
+                    'settlement_time' => now()->toDateTimeString(),
+                ], 200);
+            }
+
+            return \Illuminate\Support\Facades\Http::response([
+                'status_code' => '201',
+                'status_message' => 'QRIS transaction is created',
+                'transaction_id' => 'midtrans-mock-trx-12345',
+                'gross_amount' => '50000.00',
+                'payment_type' => 'qris',
+                'transaction_time' => now()->toDateTimeString(),
+                'transaction_status' => 'pending',
+                'actions' => [
+                    [
+                        'name' => 'generate-qr-code',
+                        'method' => 'GET',
+                        'url' => 'https://api.sandbox.midtrans.com/v2/qris/mock-qr/qr-code',
+                    ]
+                ],
+                'qr_string' => '00020101021226680016ID.CO.MIDTRANS.WWW01189360099999999999990215MOCK123456789015104000053033605802ID5910MARMOYO-RESTO6007BANDUNG61054011562210517MOCK-ORDER-99999996304E1D2',
+            ], 201);
+        });
     }
     public function test_customer_can_scan_table_qr_and_view_menu(): void
     {
@@ -100,6 +138,50 @@ class MarmoyoSmartDineTest extends TestCase
         $order->refresh();
         $this->assertEquals('menunggu', $order->status);
         $this->assertEquals('paid', $order->payment_status);
+    }
+
+    public function test_verify_qris_button_strictly_fails_if_customer_has_not_paid(): void
+    {
+        $table = RestaurantTable::where('table_number', '08')->first();
+        $menu = Menu::first();
+
+        // Create an unpaid QRIS order
+        $order = Order::create([
+            'order_number' => 'MRM-TEST-UNPAID-' . time(),
+            'table_id' => $table->id,
+            'customer_name' => 'Pending Tester',
+            'order_type' => 'dine_in',
+            'total_amount' => 15000,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'final_amount' => 15000,
+            'status' => 'menunggu_pembayaran',
+            'payment_method' => 'qris',
+            'payment_status' => 'unpaid',
+        ]);
+
+        $payment = \App\Models\Payment::create([
+            'order_id' => $order->id,
+            'payment_code' => 'QRIS-' . $order->order_number,
+            'method' => 'qris',
+            'amount' => 15000,
+            'status' => 'pending',
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        // Customer intentionally clicks "Saya Sudah Membayar" without having paid (Midtrans returns pending for UNPAID orders)
+        $verifyResponse = $this->post(route('customer.verify-qris', ['orderNumber' => $order->order_number]));
+
+        // Process MUST FAIL: redirects back to payment page with an error
+        $verifyResponse->assertRedirect(route('customer.payment', ['orderNumber' => $order->order_number]));
+        $verifyResponse->assertSessionHas('error');
+
+        // Order & payment MUST remain UNPAID and NOT sent to kitchen
+        $order->refresh();
+        $payment->refresh();
+        $this->assertEquals('unpaid', $order->payment_status);
+        $this->assertEquals('pending', $payment->status);
+        $this->assertNotEquals('paid', $order->payment_status);
     }
 
     public function test_cashier_can_validate_cash_payment(): void

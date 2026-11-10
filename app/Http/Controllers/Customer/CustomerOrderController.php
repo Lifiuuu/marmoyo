@@ -62,13 +62,13 @@ class CustomerOrderController extends Controller
         $table = $this->tableService->getCurrentTable();
 
         $categories = Category::with(['menus' => function ($query) {
-            $query->where('is_available', true)->with(['variants']);
+            $query->where('is_available', true)->with(['variants', 'category']);
         }])->orderBy('sort_order')->get();
 
-        $featuredMenu = Menu::with('variants')
+        $featuredMenu = Menu::with(['variants', 'category'])
             ->where('is_bestseller', true)
             ->where('is_available', true)
-            ->first() ?? Menu::where('is_available', true)->first();
+            ->first() ?? Menu::with(['variants', 'category'])->where('is_available', true)->first();
 
         $allToppings = MenuTopping::where('is_available', true)->get();
         $cart = Session::get('cart', []);
@@ -325,9 +325,9 @@ class CustomerOrderController extends Controller
     }
 
     /**
-     * Simulate or verify QRIS payment verification.
+     * Strictly verify QRIS payment against database & payment gateway.
      */
-    public function verifyQris(string $orderNumber)
+    public function verifyQris(Request $request, string $orderNumber)
     {
         $order = Order::with(['payment', 'table'])->where('order_number', $orderNumber)->firstOrFail();
         $payment = $order->payment;
@@ -336,15 +336,33 @@ class CustomerOrderController extends Controller
             return redirect()->back()->with('error', 'Data pembayaran tidak ditemukan.');
         }
 
-        $success = $this->qrisService->verifyPayment($payment);
-
-        if ($success) {
+        // 1. If already recorded as paid in database, redirect straight to tracking
+        if ($order->isPaid() || $payment->isSuccess()) {
             return redirect()->route('customer.order-status', ['orderNumber' => $order->order_number])
-                ->with('success', 'Pembayaran QRIS Anda berhasil diverifikasi!');
+                ->with('success', 'Pembayaran QRIS Anda telah berhasil diverifikasi!');
         }
 
+        // 2. Anti-spam rate limiting: prevent rapid button spamming (minimum 2s cooldown)
+        $sessionKey = 'last_qris_verify_' . $orderNumber;
+        $lastAttempt = session($sessionKey, 0);
+        $now = now()->timestamp;
+        if ($now - $lastAttempt < 2) {
+            return redirect()->route('customer.payment', ['orderNumber' => $order->order_number])
+                ->with('error', 'Mohon tunggu beberapa detik sebelum memeriksa kembali status pembayaran.');
+        }
+        session([$sessionKey => $now]);
+
+        // 3. Strictly verify payment status with service & Midtrans API
+        $result = $this->qrisService->verifyPaymentWithStatus($payment);
+
+        if ($result['success']) {
+            return redirect()->route('customer.order-status', ['orderNumber' => $order->order_number])
+                ->with('success', $result['message']);
+        }
+
+        // 4. Strictly FAIL if payment is not yet recorded as paid
         return redirect()->route('customer.payment', ['orderNumber' => $order->order_number])
-            ->with('error', 'Waktu pembayaran QRIS telah habis atau verifikasi gagal.');
+            ->with('error', $result['message']);
     }
 
     /**

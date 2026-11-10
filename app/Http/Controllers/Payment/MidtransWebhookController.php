@@ -81,7 +81,7 @@ class MidtransWebhookController extends Controller
         if ($transactionStatus === 'settlement' || ($transactionStatus === 'capture' && $fraudStatus === 'accept')) {
             // Idempotent payment completion
             if (!$payment->isSuccess()) {
-                $this->qrisPaymentService->verifyPayment($payment);
+                $this->qrisPaymentService->markPaymentSuccess($payment, $payload);
                 Log::info("Midtrans Webhook: Order {$orderId} successfully marked as PAID");
             }
         } elseif ($transactionStatus === 'pending') {
